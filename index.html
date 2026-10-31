@@ -1,1 +1,219 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Company Attendance</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: #f1f5f9;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  padding: 30px 22px;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px #00000012;
+  text-align: center;
+}
+
+h2 {
+  color: #172554;
+  margin-bottom: 8px;
+  font-size: 23px;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 13px;
+  margin-bottom: 25px;
+}
+
+.clock {
+  font-size: 36px;
+  font-weight: bold;
+  color: #0f172a;
+  margin-bottom: 5px;
+}
+
+.date {
+  color: #64748b;
+  margin-bottom: 25px;
+  font-size: 14px;
+}
+
+.camera {
+  background: #0f172a;
+  border-radius: 15px;
+  overflow: hidden;
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  color: white;
+}
+
+video {
+  width: 100%;
+  display: none;
+}
+
+.camera-message {
+  padding: 20px;
+  line-height: 1.6;
+}
+
+button {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 12px;
+  color: white;
+}
+
+.scan-btn {
+  background: #2563eb;
+}
+
+.stop-btn {
+  background: #475569;
+}
+
+.status {
+  color: #64748b;
+  font-size: 13px;
+  margin-top: 8px;
+  min-height: 20px;
+}
+
+.footer {
+  margin-top: 20px;
+  color: #94a3b8;
+  font-size: 11px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h2>COMPANY ATTENDANCE</h2>
+  <p class="subtitle">FACE RECOGNITION SYSTEM</p>
+
+  <div class="clock" id="clock">00:00:00</div>
+  <div class="date" id="date"></div>
+
+  <div class="camera">
+    <div class="camera-message" id="message">
+      <div style="font-size:45px;">📷</div>
+      <b>SHOW YOUR FACE</b>
+      <p>Look at the camera</p>
+    </div>
+    <video id="video" autoplay playsinline></video>
+  </div>
+
+  <button class="scan-btn" onclick="startCamera()">
+    START FACE SCAN
+  </button>
+
+  <button class="stop-btn" onclick="stopCamera()">
+    CLOSE CAMERA
+  </button>
+
+  <div class="status" id="status">
+    Camera is waiting...
+  </div>
+
+  <div class="footer">
+    SMART EMPLOYEE ATTENDANCE SYSTEM
+  </div>
+
+</div>
+
+<script>
+const video = document.getElementById("video");
+const message = document.getElementById("message");
+const statusText = document.getElementById("status");
+
+let cameraStream = null;
+
+function updateClock() {
+  const now = new Date();
+
+  document.getElementById("clock").textContent =
+    now.toLocaleTimeString("en-IN");
+
+  document.getElementById("date").textContent =
+    now.toLocaleDateString("en-IN", {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      year: "numeric"
+    });
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+
+async function startCamera() {
+  try {
+    cameraStream =
+      await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "user"
+        },
+        audio: false
+      });
+
+    video.srcObject = cameraStream;
+    video.style.display = "block";
+    message.style.display = "none";
+
+    statusText.textContent =
+      "Camera active. Face recognition setup is next.";
+
+  } catch (error) {
+    statusText.textContent =
+      "Camera permission denied or camera unavailable.";
+  }
+}
+
+function stopCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+  }
+
+  video.srcObject = null;
+  video.style.display = "none";
+  message.style.display = "block";
+
+  statusText.textContent = "Camera is closed.";
+}
+</script>
+
+</body>
+</html>
+

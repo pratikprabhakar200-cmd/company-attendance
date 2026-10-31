@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Company Attendance</title>
+<title>Company Attendance - Admin</title>
 
 <style>
 * {
@@ -15,8 +15,8 @@
 }
 
 body {
-  background: #f1f5f9;
   min-height: 100vh;
+  background: #f1f5f9;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -25,92 +25,102 @@ body {
 
 .container {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   background: white;
-  padding: 30px 22px;
-  border-radius: 20px;
+  padding: 30px 24px;
+  border-radius: 18px;
   box-shadow: 0 8px 30px #00000012;
-  text-align: center;
 }
 
 h2 {
+  text-align: center;
   color: #172554;
   margin-bottom: 8px;
-  font-size: 23px;
 }
 
 .subtitle {
+  text-align: center;
   color: #64748b;
   font-size: 13px;
   margin-bottom: 25px;
 }
 
-.clock {
-  font-size: 36px;
-  font-weight: bold;
-  color: #0f172a;
-  margin-bottom: 5px;
-}
-
-.date {
-  color: #64748b;
-  margin-bottom: 25px;
+label {
+  display: block;
+  margin: 15px 0 7px;
+  color: #334155;
   font-size: 14px;
+  font-weight: bold;
 }
 
-.camera {
-  background: #0f172a;
-  border-radius: 15px;
-  overflow: hidden;
-  min-height: 220px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
-  color: white;
-}
-
-video {
+input {
   width: 100%;
-  display: none;
-}
-
-.camera-message {
-  padding: 20px;
-  line-height: 1.6;
+  padding: 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  font-size: 15px;
 }
 
 button {
   width: 100%;
-  padding: 16px;
+  padding: 14px;
+  margin-top: 18px;
   border: none;
-  border-radius: 12px;
-  font-size: 17px;
+  border-radius: 9px;
+  background: #2563eb;
+  color: white;
+  font-size: 16px;
   font-weight: bold;
   cursor: pointer;
-  margin-bottom: 12px;
-  color: white;
 }
 
-.scan-btn {
-  background: #2563eb;
+button:hover {
+  background: #1d4ed8;
 }
 
-.stop-btn {
-  background: #475569;
+#dashboard {
+  display: none;
 }
 
-.status {
-  color: #64748b;
+.welcome {
+  background: #eff6ff;
+  padding: 18px;
+  border-radius: 12px;
+  margin-top: 20px;
+  color: #1e3a8a;
+  text-align: center;
+}
+
+.feature {
+  padding: 15px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  margin-top: 12px;
+  color: #334155;
+}
+
+.logout {
+  background: #dc2626;
+}
+
+.logout:hover {
+  background: #b91c1c;
+}
+
+#message {
+  text-align: center;
+  color: #dc2626;
   font-size: 13px;
-  margin-top: 8px;
-  min-height: 20px;
+  margin-top: 15px;
+  min-height: 18px;
+  overflow-wrap: anywhere;
 }
 
 .footer {
-  margin-top: 20px;
+  text-align: center;
   color: #94a3b8;
   font-size: 11px;
+  margin-top: 25px;
 }
 </style>
 </head>
@@ -119,31 +129,62 @@ button {
 
 <div class="container">
 
-  <h2>COMPANY ATTENDANCE</h2>
-  <p class="subtitle">FACE RECOGNITION SYSTEM</p>
+  <div id="login">
+    <h2>COMPANY ATTENDANCE</h2>
+    <p class="subtitle">ADMINISTRATOR LOGIN</p>
 
-  <div class="clock" id="clock">00:00:00</div>
-  <div class="date" id="date"></div>
+    <form id="loginForm">
+      <label>Admin Email</label>
+      <input
+        type="email"
+        id="email"
+        placeholder="Enter admin email"
+        required
+      >
 
-  <div class="camera">
-    <div class="camera-message" id="message">
-      <div style="font-size:45px;">📷</div>
-      <b>SHOW YOUR FACE</b>
-      <p>Look at the camera</p>
-    </div>
-    <video id="video" autoplay playsinline></video>
+      <label>Password</label>
+      <input
+        type="password"
+        id="password"
+        placeholder="Enter password"
+        required
+      >
+
+      <button type="submit" id="loginBtn">
+        LOGIN
+      </button>
+    </form>
+
+    <div id="message"></div>
   </div>
 
-  <button class="scan-btn" onclick="startCamera()">
-    START FACE SCAN
-  </button>
+  <div id="dashboard">
+    <h2>ADMIN DASHBOARD</h2>
+    <p class="subtitle">COMPANY ATTENDANCE SYSTEM</p>
 
-  <button class="stop-btn" onclick="stopCamera()">
-    CLOSE CAMERA
-  </button>
+    <div class="welcome">
+      <h3>Welcome, Admin!</h3>
+      <p id="adminEmail"></p>
+    </div>
 
-  <div class="status" id="status">
-    Camera is waiting...
+    <div class="feature">
+      <b>Employee Registration</b>
+      <p>Coming in the next step</p>
+    </div>
+
+    <div class="feature">
+      <b>Face Registration</b>
+      <p>Coming in the next step</p>
+    </div>
+
+    <div class="feature">
+      <b>Attendance & OT Reports</b>
+      <p>Coming in the next step</p>
+    </div>
+
+    <button class="logout" id="logoutBtn">
+      LOGOUT
+    </button>
   </div>
 
   <div class="footer">
@@ -152,68 +193,78 @@ button {
 
 </div>
 
-<script>
-const video = document.getElementById("video");
+<script type="module">
+import { initializeApp } from
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+// Firebase Console se apna Web App Config yahan paste karein.
+const firebaseConfig = {
+  apiKey: "PASTE_YOUR_API_KEY",
+  authDomain: "company-attendance-8bbb1.firebaseapp.com",
+  databaseURL: "https://company-attendance-8bbb1-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "company-attendance-8bbb1",
+  storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
+  messagingSenderId: "PASTE_YOUR_MESSAGING_SENDER_ID",
+  appId: "PASTE_YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+const loginBox = document.getElementById("login");
+const dashboard = document.getElementById("dashboard");
 const message = document.getElementById("message");
-const statusText = document.getElementById("status");
 
-let cameraStream = null;
+document.getElementById("loginForm").addEventListener(
+  "submit",
+  async (event) => {
+    event.preventDefault();
 
-function updateClock() {
-  const now = new Date();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const loginBtn = document.getElementById("loginBtn");
 
-  document.getElementById("clock").textContent =
-    now.toLocaleTimeString("en-IN");
+    message.textContent = "";
+    loginBtn.disabled = true;
+    loginBtn.textContent = "PLEASE WAIT...";
 
-  document.getElementById("date").textContent =
-    now.toLocaleDateString("en-IN", {
-      weekday: "long",
-      day: "2-digit",
-      month: "long",
-      year: "numeric"
-    });
-}
-
-setInterval(updateClock, 1000);
-updateClock();
-
-async function startCamera() {
-  try {
-    cameraStream =
-      await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: "user"
-        },
-        audio: false
-      });
-
-    video.srcObject = cameraStream;
-    video.style.display = "block";
-    message.style.display = "none";
-
-    statusText.textContent =
-      "Camera active. Face recognition setup is next.";
-
-  } catch (error) {
-    statusText.textContent =
-      "Camera permission denied or camera unavailable.";
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      message.textContent = "Login failed: " + error.message;
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = "LOGIN";
+    }
   }
-}
+);
 
-function stopCamera() {
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(track => track.stop());
-    cameraStream = null;
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    loginBox.style.display = "none";
+    dashboard.style.display = "block";
+    document.getElementById("adminEmail").textContent = user.email;
+  } else {
+    loginBox.style.display = "block";
+    dashboard.style.display = "none";
   }
+});
 
-  video.srcObject = null;
-  video.style.display = "none";
-  message.style.display = "block";
-
-  statusText.textContent = "Camera is closed.";
-}
+document.getElementById("logoutBtn").addEventListener(
+  "click",
+  async () => {
+    await signOut(auth);
+  }
+);
 </script>
 
 </body>
 </html>
-

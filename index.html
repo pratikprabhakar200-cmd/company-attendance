@@ -4,276 +4,370 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Company Attendance - Admin</title>
+<title>Company Attendance Admin</title>
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
-
-body {
-  min-height: 100vh;
-  background: #f1f5f9;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
-
-.container {
-  width: 100%;
-  max-width: 420px;
-  background: white;
-  padding: 30px 24px;
-  border-radius: 18px;
-  box-shadow: 0 8px 30px #00000012;
-}
-
-h2 {
-  text-align: center;
-  color: #172554;
-  margin-bottom: 8px;
-}
-
-.subtitle {
-  text-align: center;
-  color: #64748b;
-  font-size: 13px;
-  margin-bottom: 25px;
-}
-
-label {
-  display: block;
-  margin: 15px 0 7px;
-  color: #334155;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-input {
-  width: 100%;
-  padding: 14px;
-  border: 1px solid #cbd5e1;
-  border-radius: 9px;
-  font-size: 15px;
-}
-
-button {
-  width: 100%;
-  padding: 14px;
-  margin-top: 18px;
-  border: none;
-  border-radius: 9px;
-  background: #2563eb;
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
-
-button:hover {
-  background: #1d4ed8;
-}
-
-#dashboard {
-  display: none;
-}
-
-.welcome {
-  background: #eff6ff;
-  padding: 18px;
-  border-radius: 12px;
-  margin-top: 20px;
-  color: #1e3a8a;
-  text-align: center;
-}
-
-.feature {
-  padding: 15px;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  margin-top: 12px;
-  color: #334155;
-}
-
-.logout {
-  background: #dc2626;
-}
-
-.logout:hover {
-  background: #b91c1c;
-}
-
-#message {
-  text-align: center;
-  color: #dc2626;
-  font-size: 13px;
-  margin-top: 15px;
-  min-height: 18px;
-  overflow-wrap: anywhere;
-}
-
-.footer {
-  text-align: center;
-  color: #94a3b8;
-  font-size: 11px;
-  margin-top: 25px;
-}
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{margin:0;background:#f1f5f9;padding:20px;color:#172554}
+.container{max-width:950px;margin:auto;background:white;padding:24px;border-radius:15px;box-shadow:0 5px 25px #0001}
+h2{text-align:center}
+.subtitle{text-align:center;color:#64748b}
+input{width:100%;padding:12px;margin:7px 0 14px;border:1px solid #cbd5e1;border-radius:8px}
+label{font-weight:bold;font-size:14px}
+button{padding:11px 16px;border:0;border-radius:8px;background:#2563eb;color:white;cursor:pointer;margin:5px}
+button:hover{opacity:.9}
+.logout{background:#dc2626}
+.green{background:#16a34a}
+.red{background:#dc2626}
+.card{border:1px solid #e2e8f0;padding:18px;border-radius:12px;margin-top:18px}
+.hidden{display:none}
+#message{color:#dc2626;text-align:center;overflow-wrap:anywhere}
+#employeeList{margin-top:15px}
+.employee{border:1px solid #e2e8f0;padding:14px;border-radius:9px;margin-top:10px}
+.employee img{width:75px;height:75px;object-fit:cover;border-radius:50%}
+.employee-row{display:flex;gap:15px;align-items:center;flex-wrap:wrap}
+.status{font-weight:bold}
+video,canvas{width:100%;max-width:320px;border-radius:10px;background:#111}
+#preview{width:110px;height:110px;object-fit:cover;border-radius:50%}
+.small{font-size:12px;color:#64748b}
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
-  <div id="login">
-    <h2>COMPANY ATTENDANCE</h2>
-    <p class="subtitle">ADMINISTRATOR LOGIN</p>
+<div id="login">
+<h2>COMPANY ATTENDANCE</h2>
+<p class="subtitle">ADMINISTRATOR LOGIN</p>
 
-    <form id="loginForm">
-      <label>Admin Email</label>
-      <input
-        type="email"
-        id="email"
-        placeholder="Enter admin email"
-        required
-      >
+<form id="loginForm">
+<label>Admin Email</label>
+<input type="email" id="email" required placeholder="Admin Email">
 
-      <label>Password</label>
-      <input
-        type="password"
-        id="password"
-        placeholder="Enter password"
-        required
-      >
+<label>Password</label>
+<input type="password" id="password" required placeholder="Password">
 
-      <button type="submit" id="loginBtn">
-        LOGIN
-      </button>
-    </form>
+<button type="submit" id="loginBtn">LOGIN</button>
+</form>
+<div id="message"></div>
+</div>
 
-    <div id="message"></div>
-  </div>
+<div id="dashboard" class="hidden">
+<h2>ADMIN DASHBOARD</h2>
+<p class="subtitle">COMPANY ATTENDANCE SYSTEM</p>
 
-  <div id="dashboard">
-    <h2>ADMIN DASHBOARD</h2>
-    <p class="subtitle">COMPANY ATTENDANCE SYSTEM</p>
+<div class="card">
+<h3>Welcome, Admin</h3>
+<p id="adminEmail"></p>
+<button class="logout" id="logoutBtn">LOGOUT</button>
+</div>
 
-    <div class="welcome">
-      <h3>Welcome, Admin!</h3>
-      <p id="adminEmail"></p>
-    </div>
+<div class="card">
+<h3>Employee Registration</h3>
 
-    <div class="feature">
-      <b>Employee Registration</b>
-      <p>Coming in the next step</p>
-    </div>
+<label>Employee Full Name</label>
+<input id="empName" placeholder="Enter employee name">
 
-    <div class="feature">
-      <b>Face Registration</b>
-      <p>Coming in the next step</p>
-    </div>
+<label>Mobile Number</label>
+<input id="empMobile" type="tel" maxlength="10" placeholder="10 digit mobile number">
 
-    <div class="feature">
-      <b>Attendance & OT Reports</b>
-      <p>Coming in the next step</p>
-    </div>
+<label>Face Photo Registration</label>
+<div>
+<video id="camera" autoplay playsinline class="hidden"></video>
+<canvas id="canvas" class="hidden"></canvas>
+<img id="preview" class="hidden" alt="Captured photo">
+</div>
 
-    <button class="logout" id="logoutBtn">
-      LOGOUT
-    </button>
-  </div>
+<button type="button" id="cameraBtn">OPEN CAMERA</button>
+<button type="button" id="captureBtn" class="green hidden">CAPTURE PHOTO</button>
+<button type="button" id="retakeBtn" class="hidden">RETAKE PHOTO</button>
 
-  <div class="footer">
-    SMART EMPLOYEE ATTENDANCE SYSTEM
-  </div>
+<p class="small">अभी फोटो केवल इस स्क्रीन पर preview होगी। असली Face Recognition अगले चरण में जोड़ा जाएगा।</p>
 
+<button type="button" id="saveBtn" class="green">SAVE EMPLOYEE</button>
+<p id="saveMessage"></p>
+</div>
+
+<div class="card">
+<h3>Employee List</h3>
+<input id="searchEmployee" placeholder="Search by name or Employee ID">
+<div id="employeeList">Loading employees...</div>
+</div>
+</div>
 </div>
 
 <script type="module">
-import { initializeApp } from
+import {initializeApp} from
 "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
-  getAuth,
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut
+ getAuth, signInWithEmailAndPassword,
+ onAuthStateChanged, signOut
 } from
 "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+import {
+ getDatabase, ref, get, set, update, runTransaction, onValue
+} from
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
 const firebaseConfig = {
-  apiKey: "AIzaSyCf8VATHo9dmDav73IX1i_WiWuBprrj7Zg",
-  authDomain: "company-attendance-8bbb1.firebaseapp.com",
-  databaseURL: "https://company-attendance-8bbb1-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "company-attendance-8bbb1",
-  storageBucket: "company-attendance-8bbb1.firebasestorage.app",
-  messagingSenderId: "528681450890",
-  appId: "1:528681450890:web:fa49fe969b9c23f2de5c73",
-  measurementId: "G-BHG5DXXTFF"
+ apiKey: "AIzaSyCf8VATHo9dmDav73IX1i_WiWuBprrj7Zg",
+ authDomain: "company-attendance-8bbb1.firebaseapp.com",
+ databaseURL: "https://company-attendance-8bbb1-default-rtdb.asia-southeast1.firebasedatabase.app",
+ projectId: "company-attendance-8bbb1",
+ storageBucket: "company-attendance-8bbb1.firebasestorage.app",
+ messagingSenderId: "528681450890",
+ appId: "1:528681450890:web:fa49fe969b9c23f2de5c73",
+ measurementId: "G-BHG5DXXTFF"
 };
+
+const ADMIN_UID = "83VXGyZpVkU9pTkWP4tPxSYt9OU2";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getDatabase(app);
 
 const loginBox = document.getElementById("login");
 const dashboard = document.getElementById("dashboard");
 const message = document.getElementById("message");
 
-document.getElementById("loginForm").addEventListener(
-  "submit",
-  async (event) => {
-    event.preventDefault();
+let cameraStream = null;
+let photoCaptured = false;
 
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-    const loginBtn = document.getElementById("loginBtn");
-
-    message.textContent = "";
-    loginBtn.disabled = true;
-    loginBtn.textContent = "PLEASE WAIT...";
-
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      message.textContent = "Login failed: " + error.message;
-    } finally {
-      loginBtn.disabled = false;
-      loginBtn.textContent = "LOGIN";
-    }
-  }
-);
-
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    loginBox.style.display = "none";
-    dashboard.style.display = "block";
-    document.getElementById("adminEmail").textContent = user.email;
-  } else {
-    loginBox.style.display = "block";
-    dashboard.style.display = "none";
-  }
+onAuthStateChanged(auth, user => {
+ if(user && user.uid === ADMIN_UID){
+   loginBox.classList.add("hidden");
+   dashboard.classList.remove("hidden");
+   document.getElementById("adminEmail").textContent = user.email;
+   loadEmployees();
+ } else {
+   dashboard.classList.add("hidden");
+   loginBox.classList.remove("hidden");
+   if(user){
+     signOut(auth);
+     message.textContent = "Unauthorized Admin Account";
+   }
+ }
 });
 
-document.getElementById("logoutBtn").addEventListener(
-  "click",
-  async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      message.textContent = error.message;
-    }
-  }
-);
-</script>
+document.getElementById("loginForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const btn=document.getElementById("loginBtn");
+ btn.disabled=true;
+ btn.textContent="PLEASE WAIT...";
+ message.textContent="";
+ try{
+   const result=await signInWithEmailAndPassword(
+     auth,
+     document.getElementById("email").value.trim(),
+     document.getElementById("password").value
+   );
+   if(result.user.uid !== ADMIN_UID){
+     await signOut(auth);
+     message.textContent="This account is not authorized as Admin.";
+   }
+ }catch(error){
+   message.textContent="Login failed: "+error.message;
+ }finally{
+   btn.disabled=false;
+   btn.textContent="LOGIN";
+ }
+});
 
+document.getElementById("logoutBtn").onclick=()=>signOut(auth);
+
+async function openCamera(){
+ try{
+   cameraStream=await navigator.mediaDevices.getUserMedia({
+     video:{facingMode:"user"},audio:false
+   });
+   const video=document.getElementById("camera");
+   video.srcObject=cameraStream;
+   video.classList.remove("hidden");
+   document.getElementById("captureBtn").classList.remove("hidden");
+   document.getElementById("cameraBtn").classList.add("hidden");
+ }catch(error){
+   alert("Camera access nahi mila. Browser permission Allow karein.");
+ }
+}
+
+function stopCamera(){
+ if(cameraStream){
+   cameraStream.getTracks().forEach(track=>track.stop());
+   cameraStream=null;
+ }
+}
+
+document.getElementById("cameraBtn").onclick=openCamera;
+
+document.getElementById("captureBtn").onclick=()=>{
+ const video=document.getElementById("camera");
+ const canvas=document.getElementById("canvas");
+ if(!video.videoWidth){
+   alert("Camera abhi ready nahi hai.");
+   return;
+ }
+ canvas.width=video.videoWidth;
+ canvas.height=video.videoHeight;
+ canvas.getContext("2d").drawImage(video,0,0);
+ const preview=document.getElementById("preview");
+ preview.src=canvas.toDataURL("image/jpeg",0.85);
+ preview.classList.remove("hidden");
+ video.classList.add("hidden");
+ document.getElementById("captureBtn").classList.add("hidden");
+ document.getElementById("retakeBtn").classList.remove("hidden");
+ photoCaptured=true;
+ stopCamera();
+};
+
+document.getElementById("retakeBtn").onclick=()=>{
+ photoCaptured=false;
+ document.getElementById("preview").classList.add("hidden");
+ document.getElementById("retakeBtn").classList.add("hidden");
+ document.getElementById("cameraBtn").classList.remove("hidden");
+};
+
+function makeInitials(name){
+ const parts=name.trim().split(/\s+/);
+ const first=parts[0][0];
+ const last=parts[parts.length-1];
+ return (first+last[last.length-1]).toUpperCase();
+}
+
+document.getElementById("saveBtn").onclick=async()=>{
+ const name=document.getElementById("empName").value.trim();
+ const mobile=document.getElementById("empMobile").value.trim();
+ const saveBtn=document.getElementById("saveBtn");
+ const output=document.getElementById("saveMessage");
+
+ if(!name){
+   alert("Employee name enter karein.");
+   return;
+ }
+ if(!/^[0-9]{10}$/.test(mobile)){
+   alert("Valid 10 digit mobile number enter karein.");
+   return;
+ }
+ if(!auth.currentUser || auth.currentUser.uid!==ADMIN_UID){
+   alert("Admin login required.");
+   return;
+ }
+
+ saveBtn.disabled=true;
+ output.textContent="Saving employee...";
+
+ try{
+   const counterRef=ref(db,"employees/_meta/lastSerial");
+   const transaction=await runTransaction(counterRef,current=>(current||0)+1);
+   if(!transaction.committed) throw new Error("Employee ID generate nahi hua.");
+
+   const serial=transaction.snapshot.val();
+   const employeeId=makeInitials(name)+"-85"+String(serial).padStart(2,"0");
+
+   const employee={
+     employeeId,
+     name,
+     mobile,
+     status:"Active",
+     photoCaptured,
+     createdAt:new Date().toISOString()
+   };
+
+   await set(ref(db,"employees/"+employeeId),employee);
+
+   output.style.color="green";
+   output.textContent="Employee saved successfully! ID: "+employeeId;
+
+   document.getElementById("empName").value="";
+   document.getElementById("empMobile").value="";
+   document.getElementById("preview").classList.add("hidden");
+   document.getElementById("retakeBtn").classList.add("hidden");
+   document.getElementById("cameraBtn").classList.remove("hidden");
+   photoCaptured=false;
+
+ }catch(error){
+   output.style.color="red";
+   output.textContent="Error: "+error.message;
+ }finally{
+   saveBtn.disabled=false;
+ }
+};
+
+function loadEmployees(){
+ const list=document.getElementById("employeeList");
+ onValue(ref(db,"employees"),snapshot=>{
+   const data=snapshot.val()||{};
+   const employees=Object.values(data)
+     .filter(item=>item && item.employeeId)
+     .sort((a,b)=>a.employeeId.localeCompare(b.employeeId));
+   renderEmployees(employees);
+ },error=>{
+   list.textContent="Database error: "+error.message;
+ });
+}
+
+function renderEmployees(employees){
+ const list=document.getElementById("employeeList");
+ const search=document.getElementById("searchEmployee").value.toLowerCase();
+ const filtered=employees.filter(emp=>
+   emp.name.toLowerCase().includes(search) ||
+   emp.employeeId.toLowerCase().includes(search)
+ );
+
+ if(!filtered.length){
+   list.textContent="No employees found.";
+   return;
+ }
+
+ list.innerHTML="";
+ filtered.forEach(emp=>{
+   const card=document.createElement("div");
+   card.className="employee";
+
+   const row=document.createElement("div");
+   row.className="employee-row";
+
+   const details=document.createElement("div");
+   details.style.flex="1";
+   const title=document.createElement("b");
+   title.textContent=emp.name;
+   const id=document.createElement("p");
+   id.textContent="ID: "+emp.employeeId;
+   const phone=document.createElement("p");
+   phone.textContent="Mobile: "+emp.mobile;
+   const status=document.createElement("p");
+   status.className="status";
+   status.textContent="Status: "+emp.status;
+
+   const toggle=document.createElement("button");
+   toggle.textContent=emp.status==="Active"?"DEACTIVATE":"ACTIVATE";
+   toggle.className=emp.status==="Active"?"red":"green";
+   toggle.onclick=()=>changeStatus(emp.employeeId,emp.status);
+
+   details.append(title,id,phone,status,toggle);
+   row.append(details);
+   card.append(row);
+   list.append(card);
+ });
+}
+
+document.getElementById("searchEmployee").addEventListener("input",()=>{
+ get(ref(db,"employees")).then(snapshot=>{
+   const data=snapshot.val()||{};
+   renderEmployees(Object.values(data).filter(item=>item&&item.employeeId));
+ });
+});
+
+async function changeStatus(id,status){
+ try{
+   await update(ref(db,"employees/"+id),{
+     status:status==="Active"?"Inactive":"Active"
+   });
+ }catch(error){
+   alert("Status update failed: "+error.message);
+ }
+}
+</script>
 </body>
 </html>

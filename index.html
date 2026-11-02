@@ -1,133 +1,140 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Company Attendance Admin</title>
 
 <style>
 *{box-sizing:border-box;font-family:Arial,sans-serif}
-body{margin:0;background:#f1f5f9;padding:20px;color:#172554}
-.container{max-width:950px;margin:auto;background:white;padding:24px;border-radius:15px;box-shadow:0 5px 25px #0001}
+body{margin:0;background:#f1f5f9;color:#172554;padding:15px}
+.container{max-width:850px;margin:25px auto;background:white;padding:22px;border-radius:15px;box-shadow:0 5px 25px #0001}
 h2{text-align:center}
-.subtitle{text-align:center;color:#64748b}
-input,select{width:100%;padding:12px;margin:7px 0 14px;border:1px solid #cbd5e1;border-radius:8px}
+h3{color:#1d4ed8}
+input,select{width:100%;padding:12px;margin:7px 0 14px;border:1px solid #cbd5e1;border-radius:8px;font-size:15px}
 label{font-weight:bold;font-size:14px}
-button{padding:11px 16px;border:0;border-radius:8px;background:#2563eb;color:white;cursor:pointer;margin:5px}
-button:hover{opacity:.9}
+button{padding:12px 16px;border:0;border-radius:8px;background:#2563eb;color:white;font-size:15px;cursor:pointer;margin:5px}
 button:disabled{opacity:.5;cursor:not-allowed}
-.logout,.red{background:#dc2626}
 .green{background:#16a34a}
-.card{border:1px solid #e2e8f0;padding:18px;border-radius:12px;margin-top:18px}
-.hidden{display:none}
-#message{color:#dc2626;text-align:center;overflow-wrap:anywhere}
-#employeeList{margin-top:15px}
-.employee{border:1px solid #e2e8f0;padding:14px;border-radius:9px;margin-top:10px}
-.employee-row{display:flex;gap:15px;align-items:center;flex-wrap:wrap}
-.status{font-weight:bold}
-video,canvas{width:100%;max-width:320px;border-radius:10px;background:#111}
-#preview{width:110px;height:110px;object-fit:cover;border-radius:50%}
+.red{background:#dc2626}
+.gray{background:#475569}
+.hidden{display:none!important}
+.card{background:#f8fafc;padding:17px;border-radius:12px;margin:15px 0}
+#message{padding:12px;text-align:center;overflow-wrap:anywhere}
+video{width:100%;max-width:420px;background:#111;border-radius:12px;display:block;margin:10px auto}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th,td{border:1px solid #e2e8f0;padding:9px;text-align:left;font-size:13px}
+th{background:#eff6ff}
 .small{font-size:12px;color:#64748b}
-#saveMessage,#testPunchMessage{overflow-wrap:anywhere}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-<div id="login">
 <h2>COMPANY ATTENDANCE</h2>
-<p class="subtitle">ADMINISTRATOR LOGIN</p>
+<p style="text-align:center">ADMIN CONTROL PANEL</p>
 
-<form id="loginForm">
-<label>Admin Email</label>
-<input type="email" id="email" required placeholder="Admin Email">
+<div id="loginBox" class="card">
+<h3>Admin Login</h3>
+<label>Email</label>
+<input id="email" type="email" placeholder="Admin email">
 
 <label>Password</label>
-<input type="password" id="password" required placeholder="Password">
+<input id="password" type="password" placeholder="Password">
 
-<button type="submit" id="loginBtn">LOGIN</button>
-</form>
-<div id="message"></div>
+<button id="loginBtn">LOGIN</button>
 </div>
 
-<div id="dashboard" class="hidden">
-<h2>ADMIN DASHBOARD</h2>
-<p class="subtitle">COMPANY ATTENDANCE SYSTEM</p>
+<div id="adminPanel" class="hidden">
 
-<div class="card">
-<h3>Welcome, Admin</h3>
-<p id="adminEmail"></p>
-<button class="logout" id="logoutBtn">LOGOUT</button>
+<div style="text-align:right">
+<button id="logoutBtn" class="red">LOGOUT</button>
 </div>
 
 <div class="card">
-<h3>Employee Registration</h3>
+<h3>Register New Employee</h3>
 
-<label>Employee Full Name</label>
-<input id="empName" placeholder="Enter employee name">
+<label>Employee Name</label>
+<input id="empName" placeholder="Employee full name">
 
 <label>Mobile Number</label>
-<input id="empMobile" type="tel" maxlength="10" placeholder="10 digit mobile number">
+<input id="empMobile" maxlength="10" inputmode="numeric" placeholder="10 digit mobile">
 
-<label>Face Photo Registration</label>
-<div>
-<video id="camera" autoplay playsinline class="hidden"></video>
-<canvas id="canvas" class="hidden"></canvas>
-<img id="preview" class="hidden" alt="Captured photo">
-</div>
+<label>Employee ID</label>
+<input id="empId" readonly placeholder="Automatic Employee ID">
 
-<button type="button" id="cameraBtn">OPEN CAMERA</button>
-<button type="button" id="captureBtn" class="green hidden">CAPTURE PHOTO</button>
-<button type="button" id="retakeBtn" class="hidden">RETAKE PHOTO</button>
-
-<p class="small">फोटो अभी केवल स्क्रीन पर preview होगी। Face Recognition और Liveness Detection अभी सक्रिय नहीं हैं।</p>
-
-<button type="button" id="saveBtn" class="green">SAVE EMPLOYEE</button>
-<p id="saveMessage"></p>
+<button id="registerBtn" class="green">REGISTER EMPLOYEE</button>
 </div>
 
 <div class="card">
-<h3>ADMIN TEST PUNCH</h3>
-<p class="small">यह केवल Admin द्वारा API और GPS की जाँच के लिए है।</p>
+<h3>Face Registration</h3>
 
 <label>Employee ID</label>
-<input id="testEmployeeId" value="AH-8502">
+<input id="faceEmpId" placeholder="Example: PK-8501">
 
-<label>Attendance Action</label>
-<select id="testAction">
-<option value="IN">PUNCH IN</option>
-<option value="OUT">PUNCH OUT</option>
-</select>
+<p class="small">
+Employee ko camera ke saamne bithayein. Pehle seedha, phir halka baayein aur phir halka daayein dekhein.
+</p>
 
-<button type="button" id="testPunchBtn" class="green">TEST ATTENDANCE</button>
-<p id="testPunchMessage"></p>
+<video id="video" autoplay muted playsinline></video>
+
+<button id="cameraBtn">OPEN CAMERA</button>
+<button id="captureBtn" class="green" disabled>CAPTURE FACE</button>
+
+<p id="scanStatus">Face scan: 0 / 3</p>
+
+<button id="saveFaceBtn" disabled>SAVE 3 FACE SCANS</button>
 </div>
 
 <div class="card">
 <h3>Employee List</h3>
-<input id="searchEmployee" placeholder="Search by name or Employee ID">
-<div id="employeeList">Loading employees...</div>
+<button id="refreshBtn" class="gray">REFRESH LIST</button>
+<div style="overflow-x:auto">
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Employee ID</th>
+<th>Mobile</th>
+<th>Status</th>
+<th>Face</th>
+</tr>
+</thead>
+<tbody id="employeeList"></tbody>
+</table>
+</div>
+</div>
+
+<div class="card">
+<h3>Admin Test Punch</h3>
+<label>Employee ID</label>
+<input id="testEmpId" placeholder="Employee ID">
+<button id="testIn" class="green">TEST PUNCH IN</button>
+<button id="testOut" class="red">TEST PUNCH OUT</button>
+<p class="small">Test punch ke liye company ki 50 metre GPS boundary ke andar hona zaroori hai.</p>
 </div>
 
 </div>
+
+<div id="message"></div>
 </div>
 
 <script type="module">
-import {initializeApp} from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {initializeApp}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
- getAuth, signInWithEmailAndPassword,
- onAuthStateChanged, signOut
-} from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+ getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
- getDatabase, ref, set, update, runTransaction, onValue, get
-} from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+ getDatabase, ref, get, set, update
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+import * as faceapi from
+"https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.esm.js";
 
 const firebaseConfig = {
  apiKey: "AIzaSyCf8VATHo9dmDav73IX1i_WiWuBprrj7Zg",
@@ -136,317 +143,280 @@ const firebaseConfig = {
  projectId: "company-attendance-8bbb1",
  storageBucket: "company-attendance-8bbb1.firebasestorage.app",
  messagingSenderId: "528681450890",
- appId: "1:528681450890:web:fa49fe969b9c23f2de5c73",
- measurementId: "G-BHG5DXXTFF"
+ appId: "1:528681450890:web:fa49fe969b9c23f2de5c73"
 };
 
+const WORKER_URL =
+"https://morning-boat-14f9.pratikprabhakar200.workers.dev";
+
 const ADMIN_UID = "83VXGyZpVkU9pTkWP4tPxSYt9OU2";
-const WORKER_URL = "https://morning-boat-14f9.pratikprabhakar200.workers.dev";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-const loginBox = document.getElementById("login");
-const dashboard = document.getElementById("dashboard");
-const message = document.getElementById("message");
+const $ = id => document.getElementById(id);
 
 let cameraStream = null;
-let photoCaptured = false;
-let employeesListenerStarted = false;
+let descriptors = [];
+let modelsReady = false;
 
-onAuthStateChanged(auth, user => {
- if(user && user.uid === ADMIN_UID){
-   loginBox.classList.add("hidden");
-   dashboard.classList.remove("hidden");
-   document.getElementById("adminEmail").textContent = user.email;
+function message(text,color="#dc2626"){
+ $("message").style.color=color;
+ $("message").textContent=text;
+}
 
-   if(!employeesListenerStarted){
-     loadEmployees();
-     employeesListenerStarted = true;
-   }
- } else {
-   dashboard.classList.add("hidden");
-   loginBox.classList.remove("hidden");
+function showAdmin(){
+ $("loginBox").classList.add("hidden");
+ $("adminPanel").classList.remove("hidden");
+ loadEmployees();
+}
 
-   if(user){
-     signOut(auth);
-     message.textContent = "Unauthorized Admin Account";
-   }
+onAuthStateChanged(auth,user=>{
+ if(user && user.uid===ADMIN_UID){
+   showAdmin();
+ }else{
+   $("loginBox").classList.remove("hidden");
+   $("adminPanel").classList.add("hidden");
  }
 });
 
-document.getElementById("loginForm").addEventListener("submit",async e=>{
- e.preventDefault();
-
- const btn=document.getElementById("loginBtn");
- btn.disabled=true;
- btn.textContent="PLEASE WAIT...";
- message.textContent="";
-
+$("loginBtn").onclick=async()=>{
  try{
+   message("Login ho raha hai...","#2563eb");
    const result=await signInWithEmailAndPassword(
-     auth,
-     document.getElementById("email").value.trim(),
-     document.getElementById("password").value
+     auth,$("email").value.trim(),$("password").value
    );
-
-   if(result.user.uid !== ADMIN_UID){
+   if(result.user.uid!==ADMIN_UID){
      await signOut(auth);
-     message.textContent="This account is not authorized as Admin.";
+     throw new Error("Admin access denied");
    }
- }catch(error){
-   message.textContent="Login failed: "+error.message;
- }finally{
-   btn.disabled=false;
-   btn.textContent="LOGIN";
+   message("Admin login successful","#16a34a");
+ }catch(e){
+   message("Login error: "+e.message);
  }
+};
+
+$("logoutBtn").onclick=()=>signOut(auth);
+
+async function getToken(){
+ if(!auth.currentUser) throw new Error("Admin login required");
+ return await auth.currentUser.getIdToken(true);
+}
+
+async function loadEmployees(){
+ try{
+   const snapshot=await get(ref(db,"employees"));
+   const employees=snapshot.val()||{};
+   const tbody=$("employeeList");
+   tbody.innerHTML="";
+
+   for(const [id,e] of Object.entries(employees)){
+     const tr=document.createElement("tr");
+     const values=[
+       e.name||"",
+       id,
+       e.mobile||"",
+       e.status||"",
+       e.faceRegistered?"Registered":"Pending"
+     ];
+     values.forEach(value=>{
+       const td=document.createElement("td");
+       td.textContent=value;
+       tr.appendChild(td);
+     });
+     tbody.appendChild(tr);
+   }
+ }catch(e){
+   message("Employee list error: "+e.message);
+ }
+}
+
+function generateEmployeeId(name,serial){
+ const letters=name.trim().split(/\s+/)
+   .map(x=>x[0]).join("").toUpperCase();
+ const last=name.trim().slice(-1).toUpperCase();
+ const first=letters[0]||"E";
+ return `${first}${last}-85${String(serial).padStart(2,"0")}`;
+}
+
+async function nextEmployeeId(name){
+ const snapshot=await get(ref(db,"employees"));
+ const employees=snapshot.val()||{};
+ let serial=1;
+ while(true){
+   const id=generateEmployeeId(name,serial);
+   if(!employees[id]) return id;
+   serial++;
+ }
+}
+
+$("empName").addEventListener("input",async()=>{
+ const name=$("empName").value.trim();
+ if(name.length<2){
+   $("empId").value="";
+   return;
+ }
+ try{
+   $("empId").value=await nextEmployeeId(name);
+ }catch(e){}
 });
 
-document.getElementById("logoutBtn").onclick=()=>signOut(auth);
-
-async function openCamera(){
+$("registerBtn").onclick=async()=>{
  try{
-   cameraStream=await navigator.mediaDevices.getUserMedia({
-     video:{facingMode:"user"},audio:false
-   });
+   const name=$("empName").value.trim();
+   const mobile=$("empMobile").value.trim();
 
-   const video=document.getElementById("camera");
-   video.srcObject=cameraStream;
-   video.classList.remove("hidden");
-   document.getElementById("captureBtn").classList.remove("hidden");
-   document.getElementById("cameraBtn").classList.add("hidden");
- }catch(error){
-   alert("Camera access nahi mila. Browser permission Allow karein.");
- }
-}
+   if(name.length<2) throw new Error("Employee name enter karein");
+   if(!/^[0-9]{10}$/.test(mobile))
+     throw new Error("10 digit mobile number enter karein");
 
-function stopCamera(){
- if(cameraStream){
-   cameraStream.getTracks().forEach(track=>track.stop());
-   cameraStream=null;
- }
-}
+   const employeeId=await nextEmployeeId(name);
 
-document.getElementById("cameraBtn").onclick=openCamera;
-
-document.getElementById("captureBtn").onclick=()=>{
- const video=document.getElementById("camera");
- const canvas=document.getElementById("canvas");
-
- if(!video.videoWidth){
-   alert("Camera abhi ready nahi hai.");
-   return;
- }
-
- canvas.width=video.videoWidth;
- canvas.height=video.videoHeight;
- canvas.getContext("2d").drawImage(video,0,0);
-
- const preview=document.getElementById("preview");
- preview.src=canvas.toDataURL("image/jpeg",0.85);
- preview.classList.remove("hidden");
-
- video.classList.add("hidden");
- document.getElementById("captureBtn").classList.add("hidden");
- document.getElementById("retakeBtn").classList.remove("hidden");
-
- photoCaptured=true;
- stopCamera();
-};
-
-document.getElementById("retakeBtn").onclick=()=>{
- photoCaptured=false;
- document.getElementById("preview").classList.add("hidden");
- document.getElementById("retakeBtn").classList.add("hidden");
- document.getElementById("cameraBtn").classList.remove("hidden");
-};
-
-function makeInitials(name){
- const parts=name.trim().split(/\s+/);
- const first=parts[0][0];
- const last=parts[parts.length-1];
- return (first+last[last.length-1]).toUpperCase();
-}
-
-document.getElementById("saveBtn").onclick=async()=>{
- const name=document.getElementById("empName").value.trim();
- const mobile=document.getElementById("empMobile").value.trim();
- const saveBtn=document.getElementById("saveBtn");
- const output=document.getElementById("saveMessage");
-
- if(!name){
-   alert("Employee name enter karein.");
-   return;
- }
-
- if(!/^[0-9]{10}$/.test(mobile)){
-   alert("Valid 10 digit mobile number enter karein.");
-   return;
- }
-
- if(!auth.currentUser || auth.currentUser.uid!==ADMIN_UID){
-   alert("Admin login required.");
-   return;
- }
-
- saveBtn.disabled=true;
- output.textContent="Saving employee...";
-
- try{
-   const counterRef=ref(db,"employees/_meta/lastSerial");
-   const transaction=await runTransaction(counterRef,current=>(current||0)+1);
-
-   if(!transaction.committed) throw new Error("Employee ID generate nahi hua.");
-
-   const serial=transaction.snapshot.val();
-   const employeeId=makeInitials(name)+"-85"+String(serial).padStart(2,"0");
-
-   const employee={
+   await set(ref(db,"employees/"+employeeId),{
      employeeId,
      name,
      mobile,
      status:"Active",
-     photoCaptured,
+     faceRegistered:false,
      createdAt:new Date().toISOString()
-   };
+   });
 
-   await set(ref(db,"employees/"+employeeId),employee);
+   $("empId").value=employeeId;
+   $("faceEmpId").value=employeeId;
+   message("Employee registered: "+employeeId,"#16a34a");
+   $("empName").value="";
+   $("empMobile").value="";
+   await loadEmployees();
 
-   output.style.color="green";
-   output.textContent="Employee saved successfully! ID: "+employeeId;
-
-   document.getElementById("empName").value="";
-   document.getElementById("empMobile").value="";
-   document.getElementById("preview").classList.add("hidden");
-   document.getElementById("retakeBtn").classList.add("hidden");
-   document.getElementById("cameraBtn").classList.remove("hidden");
-   photoCaptured=false;
-
- }catch(error){
-   output.style.color="red";
-   output.textContent="Error: "+error.message;
- }finally{
-   saveBtn.disabled=false;
+ }catch(e){
+   message("Registration error: "+e.message);
  }
 };
 
-function loadEmployees(){
- const list=document.getElementById("employeeList");
+// FACE MODEL SETUP
+const MODEL_URL =
+"https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/model/";
 
- onValue(ref(db,"employees"),snapshot=>{
-   const data=snapshot.val()||{};
+async function loadFaceModels(){
+ if(modelsReady) return;
+ message("Face recognition models load ho rahe hain...","#2563eb");
 
-   const employees=Object.values(data)
-     .filter(item=>item && item.employeeId)
-     .sort((a,b)=>a.employeeId.localeCompare(b.employeeId));
+ await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+ await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+ await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
 
-   renderEmployees(employees);
- },error=>{
-   list.textContent="Database error: "+error.message;
- });
+ modelsReady=true;
+ message("Face models ready","#16a34a");
 }
 
-function renderEmployees(employees){
- const list=document.getElementById("employeeList");
- const search=document.getElementById("searchEmployee").value.toLowerCase();
+$("cameraBtn").onclick=async()=>{
+ try{
+   await loadFaceModels();
 
- const filtered=employees.filter(emp=>
-   (emp.name||"").toLowerCase().includes(search) ||
-   (emp.employeeId||"").toLowerCase().includes(search)
- );
+   cameraStream=await navigator.mediaDevices.getUserMedia({
+     video:{facingMode:"user"},
+     audio:false
+   });
 
- if(!filtered.length){
-   list.textContent="No employees found.";
-   return;
+   $("video").srcObject=cameraStream;
+   message("Camera ready. Employee ko camera ke saamne bithayein.","#16a34a");
+
+ }catch(e){
+   message("Camera/model error: "+e.message);
  }
+};
 
- list.innerHTML="";
+$("captureBtn").onclick=async()=>{
+ try{
+   const result=await faceapi
+     .detectSingleFace(
+       $("video"),
+       new faceapi.TinyFaceDetectorOptions()
+     )
+     .withFaceLandmarks()
+     .withFaceDescriptor();
 
- filtered.forEach(emp=>{
-   const card=document.createElement("div");
-   card.className="employee";
+   if(!result){
+     throw new Error("Face detect nahi hua. Dobara try karein.");
+   }
 
-   const row=document.createElement("div");
-   row.className="employee-row";
+   descriptors.push(Array.from(result.descriptor));
 
-   const details=document.createElement("div");
-   details.style.flex="1";
+   $("scanStatus").textContent=
+     "Face scan: "+descriptors.length+" / 3";
 
-   const title=document.createElement("b");
-   title.textContent=emp.name;
+   if(descriptors.length===3){
+     $("saveFaceBtn").disabled=false;
+     $("captureBtn").disabled=true;
+     message("3 scans complete. Ab SAVE karein.","#16a34a");
+   }else{
+     message(
+       "Scan "+descriptors.length+" complete. Ab angle badal kar dobara scan karein.",
+       "#16a34a"
+     );
+   }
 
-   const id=document.createElement("p");
-   id.textContent="ID: "+emp.employeeId;
+ }catch(e){
+   message(e.message);
+ }
+};
 
-   const phone=document.createElement("p");
-   phone.textContent="Mobile: "+emp.mobile;
-
-   const status=document.createElement("p");
-   status.className="status";
-   status.textContent="Status: "+emp.status;
-
-   const toggle=document.createElement("button");
-   toggle.textContent=emp.status==="Active"?"DEACTIVATE":"ACTIVATE";
-   toggle.className=emp.status==="Active"?"red":"green";
-   toggle.onclick=()=>changeStatus(emp.employeeId,emp.status);
-
-   details.append(title,id,phone,status,toggle);
-   row.append(details);
-   card.append(row);
-   list.append(card);
- });
-}
-
-document.getElementById("searchEmployee").addEventListener("input",()=>{
- get(ref(db,"employees")).then(snapshot=>{
-   const data=snapshot.val()||{};
-   renderEmployees(Object.values(data).filter(item=>item&&item.employeeId));
- }).catch(error=>{
-   document.getElementById("employeeList").textContent=error.message;
- });
+$("video").addEventListener("playing",()=>{
+ $("captureBtn").disabled=false;
 });
 
-async function changeStatus(id,status){
+$("saveFaceBtn").onclick=async()=>{
  try{
-   await update(ref(db,"employees/"+id),{
-     status:status==="Active"?"Inactive":"Active"
+   const employeeId=$("faceEmpId").value.trim().toUpperCase();
+
+   if(!/^[A-Z0-9-]{3,30}$/.test(employeeId))
+     throw new Error("Valid Employee ID enter karein");
+
+   if(descriptors.length!==3)
+     throw new Error("3 face scans required");
+
+   message("Face descriptors save ho rahe hain...","#2563eb");
+
+   const token=await getToken();
+
+   const response=await fetch(WORKER_URL+"/face-register",{
+     method:"POST",
+     headers:{
+       "Content-Type":"application/json",
+       "Authorization":"Bearer "+token
+     },
+     body:JSON.stringify({
+       employeeId,
+       descriptors
+     })
    });
- }catch(error){
-   alert("Status update failed: "+error.message);
+
+   const result=await response.json();
+
+   if(!response.ok||!result.success)
+     throw new Error(result.message||"Face registration failed");
+
+   descriptors=[];
+   $("scanStatus").textContent="Face scan: 0 / 3";
+   $("saveFaceBtn").disabled=true;
+   $("captureBtn").disabled=false;
+
+   message("Face registration successful: "+employeeId,"#16a34a");
+   await loadEmployees();
+
+ }catch(e){
+   message("Face save error: "+e.message);
  }
-}
+};
 
-// ADMIN TEST PUNCH
-document.getElementById("testPunchBtn").onclick=async()=>{
- const btn=document.getElementById("testPunchBtn");
- const output=document.getElementById("testPunchMessage");
- const employeeId=document.getElementById("testEmployeeId").value.trim();
- const action=document.getElementById("testAction").value;
-
- if(!auth.currentUser || auth.currentUser.uid!==ADMIN_UID){
-   output.style.color="red";
-   output.textContent="Please login as authorized admin.";
-   return;
- }
-
- if(!employeeId){
-   output.style.color="red";
-   output.textContent="Employee ID enter karein.";
-   return;
- }
-
- if(!navigator.geolocation){
-   output.style.color="red";
-   output.textContent="This browser does not support GPS.";
-   return;
- }
-
- btn.disabled=true;
- output.style.color="#2563eb";
- output.textContent="Getting GPS location...";
-
+async function testPunch(action){
  try{
+   const employeeId=$("testEmpId").value.trim().toUpperCase();
+   if(!employeeId) throw new Error("Employee ID enter karein");
+
+   message("GPS location mil rahi hai...","#2563eb");
+
    const position=await new Promise((resolve,reject)=>{
      navigator.geolocation.getCurrentPosition(resolve,reject,{
        enableHighAccuracy:true,
@@ -455,59 +425,40 @@ document.getElementById("testPunchBtn").onclick=async()=>{
      });
    });
 
-   const latitude=position.coords.latitude;
-   const longitude=position.coords.longitude;
-
-   output.textContent="Checking Admin Token and sending attendance...";
-
-   const idToken=await auth.currentUser.getIdToken(true);
+   const token=await getToken();
 
    const response=await fetch(WORKER_URL+"/admin-test-punch",{
      method:"POST",
      headers:{
        "Content-Type":"application/json",
-       "Authorization":"Bearer "+idToken
+       "Authorization":"Bearer "+token
      },
      body:JSON.stringify({
        employeeId,
        action,
-       latitude,
-       longitude
+       latitude:position.coords.latitude,
+       longitude:position.coords.longitude
      })
    });
 
    const result=await response.json();
+   if(!response.ok||!result.success)
+     throw new Error(result.message||"Punch failed");
 
-   if(!response.ok || !result.success){
-     const diagnostic = result.diagnostic
-       ? " | Diagnostic: "+JSON.stringify(result.diagnostic)
-       : "";
-     throw new Error((result.message||result.error||"Attendance request failed. HTTP "+response.status)+diagnostic);
-   }
+   message(
+     result.message+" | "+result.date+" "+result.time,
+     "#16a34a"
+   );
 
-   output.style.color="green";
-   output.textContent=
-     "SUCCESS! "+(result.message||"Attendance recorded.")+
-     " | Employee: "+employeeId+
-     " | Action: "+action+
-     " | GPS distance: "+(result.distanceMeters??result.distance??"Server checked")+" metres";
-
- }catch(error){
-   output.style.color="red";
-
-   if(error.code===1){
-     output.textContent="GPS permission denied. Browser location permission Allow karein.";
-   }else if(error.code===2){
-     output.textContent="GPS location unavailable. Location ON karke dobara try karein.";
-   }else if(error.code===3){
-     output.textContent="GPS timeout. Dobara try karein.";
-   }else{
-     output.textContent="TEST FAILED: "+error.message;
-   }
- }finally{
-   btn.disabled=false;
+ }catch(e){
+   message("Test punch error: "+e.message);
  }
-};
+}
+
+$("testIn").onclick=()=>testPunch("IN");
+$("testOut").onclick=()=>testPunch("OUT");
+$("refreshBtn").onclick=loadEmployees;
+
 </script>
 </body>
 </html>

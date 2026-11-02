@@ -2,347 +2,127 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Company Attendance</title>
-
 <style>
-*{box-sizing:border-box}
-body{
-  margin:0;background:#f1f5f9;font-family:Arial,sans-serif;
-  display:flex;justify-content:center;align-items:center;
-  min-height:100vh;padding:15px
-}
-.container{
-  width:100%;max-width:390px;background:white;padding:25px;
-  border-radius:20px;text-align:center;
-  box-shadow:0 5px 25px #00000015
-}
-.logo{font-size:42px;margin-bottom:8px}
-h2{margin:5px 0;color:#172554}
-.sub{color:#64748b;font-size:14px}
-video{
-  width:100%;max-height:280px;background:#111;
-  border-radius:14px;margin-top:18px;display:none
-}
-button{
-  width:100%;padding:15px;border:0;border-radius:10px;
-  background:#2563eb;color:white;font-size:16px;
-  font-weight:bold;margin-top:14px;cursor:pointer
-}
-button:disabled{opacity:.5;cursor:not-allowed}
-#punchBtn{background:#16a34a;display:none}
-#rescanBtn{background:#475569;display:none}
-.status{
-  margin-top:16px;padding:12px;border-radius:10px;
-  background:#f1f5f9;color:#334155;font-size:14px
-}
-.employee{display:none;margin-top:15px}
-#message{white-space:pre-wrap}
+*{box-sizing:border-box}body{margin:0;background:#eef2f7;font-family:Arial,sans-serif;min-height:100vh;display:grid;place-items:center;padding:16px}
+.card{width:100%;max-width:420px;background:#fff;border-radius:20px;padding:24px;box-shadow:0 8px 30px #0f172a18;text-align:center}
+.logo{font-size:42px}h2{margin:8px 0;color:#172554}.muted{color:#64748b;font-size:14px}
+video{width:100%;max-height:300px;object-fit:cover;background:#111;border-radius:14px;margin-top:18px;display:none}
+button{width:100%;padding:15px;border:0;border-radius:11px;background:#2563eb;color:white;font-weight:700;font-size:16px;margin-top:12px;cursor:pointer}
+button:disabled{opacity:.55}#punch{background:#15803d;display:none}#again{background:#475569;display:none}
+#employee{display:none;padding:12px;background:#f8fafc;border-radius:12px;margin-top:14px}
+#message{white-space:pre-line;background:#f1f5f9;padding:12px;border-radius:10px;margin-top:16px;color:#334155;font-size:14px}
 </style>
 </head>
-
 <body>
-<div class="container">
-
-  <div class="logo">👤</div>
-  <h2>Company Attendance</h2>
-  <p class="sub">Face Recognition Attendance System</p>
-
-  <video id="video" autoplay muted playsinline></video>
-
-  <button id="startBtn">Start Face Scan</button>
-  <button id="identifyBtn" style="display:none">Identify My Face</button>
-
-  <div class="employee" id="employeeBox">
-    <h3 id="employeeName"></h3>
-    <p id="employeeId"></p>
-    <button id="punchBtn"></button>
-    <button id="rescanBtn">Scan Again</button>
-  </div>
-
-  <div class="status" id="message">Please start face scan.</div>
-
-</div>
-
-<script type="module">
-import { initializeApp } from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-  getAuth,
-  signInAnonymously
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-/* FIREBASE CONFIG */
-const firebaseConfig = {
-  apiKey: "AIzaSyCf8VATHo9dmDav73IX1i_WWuBprrj7Zg",
-  authDomain: "company-attendance-8bbb1.firebaseapp.com",
-  databaseURL: "https://company-attendance-8bbb1-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "company-attendance-8bbb1",
-  storageBucket: "company-attendance-8bbb1.firebasestorage.app",
-  messagingSenderId: "528681450890",
-  appId: "1:528681450890:web:fa49fe969b9c23f2de5c73",
-  measurementId: "G-BHG5DXXTFF"
-};
-
-/* CLOUDFLARE WORKER */
-const WORKER_URL =
-"https://morning-boat-14f9.pratikprabhakar200.workers.dev";
-
-/* FACE MODEL */
-const MODEL_URL =
-"https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/model/";
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-const video = document.getElementById("video");
-const startBtn = document.getElementById("startBtn");
-const identifyBtn = document.getElementById("identifyBtn");
-const punchBtn = document.getElementById("punchBtn");
-const rescanBtn = document.getElementById("rescanBtn");
-const message = document.getElementById("message");
-const employeeBox = document.getElementById("employeeBox");
-
-let stream = null;
-let descriptor = null;
-let employee = null;
-let currentlyPunchedIn = false;
-let modelsLoaded = false;
-
-function showMessage(text){
-  message.textContent = text;
-}
-
-async function loadModels(){
-  if(modelsLoaded) return;
-
-  showMessage("Loading face recognition models...");
-
-  await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-  await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-  await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-
-  modelsLoaded = true;
-}
-
-async function getToken(){
-  if(!auth.currentUser){
-    await signInAnonymously(auth);
-  }
-  return await auth.currentUser.getIdToken(true);
-}
-
-async function apiRequest(path, body){
-  const token = await getToken();
-
-  const response = await fetch(WORKER_URL + path,{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":"Bearer " + token
-    },
-    body:JSON.stringify(body)
-  });
-
-  const data = await response.json();
-
-  if(!response.ok){
-    throw new Error(data.error || data.message || "Server error: " + response.status);
-  }
-
-  return data;
-}
-
-/* START CAMERA */
-startBtn.addEventListener("click", async()=>{
-  try{
-    startBtn.disabled = true;
-    showMessage("Starting camera...");
-
-    await loadModels();
-
-    stream = await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:"user"},
-      audio:false
-    });
-
-    video.srcObject = stream;
-    video.style.display = "block";
-
-    startBtn.style.display = "none";
-    identifyBtn.style.display = "block";
-
-    showMessage("Camera started. Look at the camera and identify your face.");
-
-  }catch(error){
-    showMessage("Error: " + error.message);
-    startBtn.disabled = false;
-  }
-});
-
-/* IDENTIFY FACE */
-identifyBtn.addEventListener("click", async()=>{
-  try{
-    identifyBtn.disabled = true;
-    showMessage("Checking your face...");
-
-    const result = await faceapi
-      .detectSingleFace(
-        video,
-        new faceapi.TinyFaceDetectorOptions()
-      )
-      .withFaceLandmarks()
-      .withFaceDescriptor();
-
-    if(!result){
-      throw new Error("Face not detected. Please look directly at the camera.");
-    }
-
-    descriptor = Array.from(result.descriptor);
-
-    const data = await apiRequest("/face-identify",{
-      descriptor:descriptor
-    });
-
-    if(!data.success || !data.employee){
-      throw new Error(data.error || "Employee not recognized.");
-    }
-
-    employee = data.employee;
-    currentlyPunchedIn = Boolean(data.currentlyPunchedIn);
-
-    document.getElementById("employeeName").textContent =
-      employee.name || "Employee";
-
-    document.getElementById("employeeId").textContent =
-      "Employee ID: " + employee.employeeId;
-
-    employeeBox.style.display = "block";
-    identifyBtn.style.display = "none";
-
-    punchBtn.style.display = "block";
-    punchBtn.textContent = currentlyPunchedIn ? "PUNCH OUT" : "PUNCH IN";
-
-    showMessage("Face identified successfully.");
-
-  }catch(error){
-    showMessage("Error: " + error.message);
-    identifyBtn.disabled = false;
-  }
-});
-
-/* GPS */
-function getLocation(){
-  return new Promise((resolve,reject)=>{
-    if(!navigator.geolocation){
-      reject(new Error("GPS is not supported by this phone."));
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      position=>{
-        if(position.coords.accuracy > 100){
-          reject(new Error("GPS accuracy is weak. Please try again outside."));
-          return;
-        }
-
-        resolve({
-          latitude:position.coords.latitude,
-          longitude:position.coords.longitude,
-          accuracy:position.coords.accuracy
-        });
-      },
-      error=>reject(new Error("GPS error: " + error.message)),
-      {enableHighAccuracy:true,timeout:20000,maximumAge:0}
-    );
-  });
-}
-
-/* PUNCH IN / OUT */
-punchBtn.addEventListener("click", async()=>{
-  try{
-    punchBtn.disabled = true;
-
-    const action = currentlyPunchedIn ? "OUT" : "IN";
-
-    showMessage("Checking GPS location...");
-
-    const location = await getLocation();
-
-    showMessage("Submitting attendance...");
-
-    const data = await apiRequest("/face-punch",{
-      action:action,
-      descriptor:descriptor,
-      latitude:location.latitude,
-      longitude:location.longitude,
-      accuracy:location.accuracy
-    });
-
-    if(!data.success){
-      throw new Error(data.error || "Attendance failed.");
-    }
-
-    currentlyPunchedIn = action === "IN";
-
-    punchBtn.textContent = currentlyPunchedIn ? "PUNCH OUT" : "PUNCH IN";
-
-    let resultText = action === "IN"
-      ? "Punch IN successful!"
-      : "Punch OUT successful!";
-
-    if(data.time){
-      resultText += "\nTime: " + data.time;
-    }
-
-    if(data.workHours !== undefined){
-      resultText += "\nWork Hours: " + data.workHours;
-    }
-
-    if(data.otHours !== undefined){
-      resultText += "\nOT Hours: " + data.otHours;
-    }
-
-    showMessage(resultText);
-
-  }catch(error){
-    showMessage("Error: " + error.message);
-  }finally{
-    punchBtn.disabled = false;
-  }
-});
-
-/* RESCAN */
-rescanBtn.addEventListener("click",()=>{
-  employee = null;
-  descriptor = null;
-  currentlyPunchedIn = false;
-
-  if(stream){
-    stream.getTracks().forEach(track=>track.stop());
-    stream = null;
-  }
-
-  video.srcObject = null;
-  video.style.display = "none";
-
-  employeeBox.style.display = "none";
-  punchBtn.style.display = "none";
-  rescanBtn.style.display = "none";
-
-  identifyBtn.style.display = "none";
-  identifyBtn.disabled = false;
-
-  startBtn.style.display = "block";
-  startBtn.disabled = false;
-
-  showMessage("Please start face scan again.");
-});
-
-</script>
-
+<main class="card">
+ <div class="logo">👤</div><h2>Company Attendance</h2>
+ <p class="muted">Face Recognition Attendance</p>
+ <video id="video" autoplay muted playsinline></video>
+ <button id="start">Start Face Scan</button>
+ <button id="identify" hidden>Identify My Face</button>
+ <section id="employee"><b id="empName"></b><p id="empId"></p></section>
+ <button id="punch">PUNCH IN</button>
+ <button id="again">Scan Again</button>
+ <div id="message">Press Start Face Scan.</div>
+</main>
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.js"></script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+const firebaseConfig={
+ apiKey:"AIzaSyAtQDdI2P9MgeTAEWKpdEgsS6KCNO1fXnw",
+ authDomain:"company-attendance-8bbb1.firebaseapp.com",
+ databaseURL:"https://company-attendance-8bbb1-default-rtdb.asia-southeast1.firebasedatabase.app",
+ projectId:"company-attendance-8bbb1",
+ storageBucket:"company-attendance-8bbb1.firebasestorage.app",
+ messagingSenderId:"528681450890",
+ appId:"1:528681450890:web:65c943b5b8e72557de5c73",
+ measurementId:"G-KYSG7CD4W3"
+};
+const WORKER="https://morning-boat-14f9.pratikprabhakar200.workers.dev";
+const MODEL="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/model/";
+const app=initializeApp(firebaseConfig),auth=getAuth(app);
+const $=id=>document.getElementById(id);
+let stream=null,descriptor=null,employee=null,punchedIn=false,modelsReady=false;
+
+function say(t){$("message").textContent=t}
+async function token(){
+ if(!auth.currentUser) await signInAnonymously(auth);
+ return auth.currentUser.getIdToken(true);
+}
+async function callApi(path,payload){
+ const t=await token();
+ const r=await fetch(WORKER+path,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+t},body:JSON.stringify(payload)});
+ const d=await r.json().catch(()=>({}));
+ if(!r.ok) throw new Error(d.error||d.message||`Server error ${r.status}`);
+ return d;
+}
+async function loadModels(){
+ if(modelsReady)return;
+ await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL);
+ await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL);
+ await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL);
+ modelsReady=true;
+}
+$("start").onclick=async()=>{
+ try{
+  $("start").disabled=true;say("Loading face model and camera...");
+  await signInAnonymously(auth);
+  await loadModels();
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});
+  $("video").srcObject=stream;$("video").style.display="block";
+  $("start").hidden=true;$("identify").hidden=false;say("Camera ready. Look straight at the camera.");
+ }catch(e){say("Error: "+e.message);$("start").disabled=false}
+};
+$("identify").onclick=async()=>{
+ try{
+  $("identify").disabled=true;say("Scanning face...");
+  const result=await faceapi.detectSingleFace($("video"),new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+  if(!result)throw new Error("Face not detected. Move to good light and look at camera.");
+  descriptor=Array.from(result.descriptor);
+  const d=await callApi("/face-identify",{descriptor});
+  if(!d.success||!d.employee)throw new Error(d.error||"Face not recognized. Contact admin.");
+  employee=d.employee;punchedIn=!!d.currentlyPunchedIn;
+  $("empName").textContent=employee.name||"Employee";
+  $("empId").textContent="Employee ID: "+(employee.employeeId||"");
+  $("employee").style.display="block";$("identify").hidden=true;
+  $("punch").style.display="block";$("punch").textContent=punchedIn?"PUNCH OUT":"PUNCH IN";
+  $("again").style.display="block";say("Face identified successfully.");
+ }catch(e){say("Error: "+e.message);$("identify").disabled=false}
+};
+function gps(){
+ return new Promise((resolve,reject)=>{
+  if(!navigator.geolocation)return reject(new Error("GPS is not available."));
+  navigator.geolocation.getCurrentPosition(p=>{
+   if(p.coords.accuracy>100)return reject(new Error("GPS accuracy is weak. Try outdoors."));
+   resolve({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy});
+  },e=>reject(new Error("GPS: "+e.message)),{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+ });
+}
+$("punch").onclick=async()=>{
+ try{
+  $("punch").disabled=true;const action=punchedIn?"OUT":"IN";
+  say("Checking GPS...");const location=await gps();
+  say("Saving attendance...");
+  const d=await callApi("/face-punch",{action,descriptor,...location});
+  if(!d.success)throw new Error(d.error||"Punch failed.");
+  punchedIn=action==="IN";$("punch").textContent=punchedIn?"PUNCH OUT":"PUNCH IN";
+  let msg=action==="IN"?"Punch IN successful":"Punch OUT successful";
+  if(d.time)msg+="\nTime: "+d.time;
+  if(d.workHours!==undefined)msg+="\nWork Hours: "+d.workHours;
+  if(d.otHours!==undefined)msg+="\nOT Hours: "+d.otHours;
+  say(msg);
+ }catch(e){say("Error: "+e.message)}finally{$("punch").disabled=false}
+};
+$("again").onclick=()=>{
+ if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;descriptor=null;employee=null;punchedIn=false;
+ $("video").srcObject=null;$("video").style.display="none";$("employee").style.display="none";
+ $("punch").style.display="none";$("again").style.display="none";$("start").hidden=false;$("start").disabled=false;
+ $("identify").hidden=true;$("identify").disabled=false;say("Press Start Face Scan.");
+};
+</script>
 </body>
 </html>

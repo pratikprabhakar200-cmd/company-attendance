@@ -1,1 +1,223 @@
 
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Employee Attendance</title>
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{margin:0;background:#f1f5f9;color:#172554;padding:18px}
+.container{max-width:430px;margin:35px auto;background:white;padding:24px;border-radius:16px;box-shadow:0 5px 25px #0001}
+h2{text-align:center}
+p{text-align:center;color:#64748b}
+label{font-weight:bold;font-size:14px}
+input{width:100%;padding:13px;margin:8px 0 15px;border:1px solid #cbd5e1;border-radius:8px;font-size:16px}
+button{width:100%;padding:14px;border:0;border-radius:9px;background:#2563eb;color:white;font-size:16px;margin:7px 0;cursor:pointer}
+button:disabled{opacity:.5}
+.green{background:#16a34a}
+.red{background:#dc2626}
+.hidden{display:none}
+#message{overflow-wrap:anywhere;text-align:center;margin-top:15px}
+#recaptcha-container{margin:10px 0}
+.small{font-size:12px}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>COMPANY ATTENDANCE</h2>
+<p>EMPLOYEE PUNCH SYSTEM</p>
+
+<div id="step1">
+<label>Employee ID</label>
+<input id="employeeId" placeholder="Example: AH-8502">
+
+<label>Registered Mobile Number</label>
+<input id="mobile" type="tel" maxlength="10" placeholder="10 digit mobile number">
+
+<div id="recaptcha-container"></div>
+<button id="sendOtp">SEND OTP</button>
+</div>
+
+<div id="step2" class="hidden">
+<label>Enter OTP</label>
+<input id="otp" type="text" inputmode="numeric" maxlength="6" placeholder="6 digit OTP">
+<button id="verifyOtp">VERIFY OTP</button>
+</div>
+
+<div id="step3" class="hidden">
+<p id="employeeInfo"></p>
+<button id="punchIn" class="green">PUNCH IN</button>
+<button id="punchOut" class="red">PUNCH OUT</button>
+</div>
+
+<div id="message"></div>
+<p class="small">OTP सत्यापन और कंपनी की 50 मीटर GPS सीमा आवश्यक है।</p>
+</div>
+
+<script type="module">
+import {initializeApp}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+ getAuth, RecaptchaVerifier, signInWithPhoneNumber
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+ apiKey: "AIzaSyCf8VATHo9dmDav73IX1i_WiWuBprrj7Zg",
+ authDomain: "company-attendance-8bbb1.firebaseapp.com",
+ databaseURL: "https://company-attendance-8bbb1-default-rtdb.asia-southeast1.firebasedatabase.app",
+ projectId: "company-attendance-8bbb1",
+ storageBucket: "company-attendance-8bbb1.firebasestorage.app",
+ messagingSenderId: "528681450890",
+ appId: "1:528681450890:web:fa49fe969b9c23f2de5c73"
+};
+
+const WORKER_URL =
+"https://morning-boat-14f9.pratikprabhakar200.workers.dev";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+const $ = id => document.getElementById(id);
+let confirmation = null;
+let employeeId = "";
+let verified = false;
+let recaptcha = null;
+
+function message(text, color="#dc2626"){
+ $("message").style.color=color;
+ $("message").textContent=text;
+}
+
+function setupRecaptcha(){
+ if(recaptcha) return;
+ recaptcha = new RecaptchaVerifier(auth,"recaptcha-container",{});
+}
+
+$("sendOtp").onclick = async () => {
+ const mobile = $("mobile").value.trim();
+ employeeId = $("employeeId").value.trim().toUpperCase();
+
+ if(!/^[A-Z0-9-]{3,30}$/.test(employeeId)){
+   message("सही Employee ID डालें।");
+   return;
+ }
+ if(!/^[0-9]{10}$/.test(mobile)){
+   message("10 अंकों का मोबाइल नंबर डालें।");
+   return;
+ }
+
+ $("sendOtp").disabled=true;
+ message("OTP भेजा जा रहा है...","#2563eb");
+
+ try{
+   setupRecaptcha();
+   confirmation = await signInWithPhoneNumber(auth,"+91"+mobile,recaptcha);
+   $("step1").classList.add("hidden");
+   $("step2").classList.remove("hidden");
+   message("OTP भेज दिया गया है।","#16a34a");
+ }catch(error){
+   message("OTP नहीं भेजा जा सका: "+error.message);
+   if(recaptcha){
+     recaptcha.clear();
+     recaptcha=null;
+     $("recaptcha-container").innerHTML="";
+   }
+ }finally{
+   $("sendOtp").disabled=false;
+ }
+};
+
+$("verifyOtp").onclick = async () => {
+ const otp=$("otp").value.trim();
+ if(!/^[0-9]{6}$/.test(otp)){
+   message("6 अंकों का OTP डालें।");
+   return;
+ }
+
+ $("verifyOtp").disabled=true;
+ message("OTP जाँचा जा रहा है...","#2563eb");
+
+ try{
+   await confirmation.confirm(otp);
+   verified=true;
+   $("step2").classList.add("hidden");
+   $("step3").classList.remove("hidden");
+   $("employeeInfo").textContent="Employee ID: "+employeeId;
+   message("मोबाइल सत्यापित हो गया। अब Punch कर सकते हैं।","#16a34a");
+ }catch(error){
+   message("OTP गलत या Expired है: "+error.message);
+ }finally{
+   $("verifyOtp").disabled=false;
+ }
+};
+
+async function punch(action){
+ if(!verified || !auth.currentUser){
+   message("पहले OTP सत्यापित करें।");
+   return;
+ }
+
+ const inBtn=$("punchIn");
+ const outBtn=$("punchOut");
+ inBtn.disabled=true;
+ outBtn.disabled=true;
+ message("GPS location प्राप्त हो रही है...","#2563eb");
+
+ try{
+   const position=await new Promise((resolve,reject)=>{
+     navigator.geolocation.getCurrentPosition(resolve,reject,{
+       enableHighAccuracy:true,timeout:20000,maximumAge:0
+     });
+   });
+
+   const idToken=await auth.currentUser.getIdToken(true);
+
+   const response=await fetch(WORKER_URL+"/employee-punch",{
+     method:"POST",
+     headers:{
+       "Content-Type":"application/json",
+       "Authorization":"Bearer "+idToken
+     },
+     body:JSON.stringify({
+       employeeId,
+       action,
+       latitude:position.coords.latitude,
+       longitude:position.coords.longitude
+     })
+   });
+
+   const result=await response.json();
+   if(!response.ok || !result.success){
+     throw new Error(result.message||"Attendance failed");
+   }
+
+   message(
+     result.message+" | "+result.date+" "+result.time+
+     " | GPS: "+result.distanceMeters+" metres",
+     "#16a34a"
+   );
+
+   if(action==="IN"){
+     inBtn.classList.add("hidden");
+     outBtn.classList.remove("hidden");
+   }else{
+     outBtn.classList.add("hidden");
+     inBtn.classList.remove("hidden");
+   }
+ }catch(error){
+   message("ERROR: "+error.message);
+ }finally{
+   inBtn.disabled=false;
+   outBtn.disabled=false;
+ }
+}
+
+$("punchIn").onclick=()=>punch("IN");
+$("punchOut").onclick=()=>punch("OUT");
+$("punchOut").classList.add("hidden");
+</script>
+</body>
+</html>
+

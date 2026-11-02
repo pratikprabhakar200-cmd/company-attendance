@@ -1,884 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Company Attendance - Admin Panel</title>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Company Attendance Admin</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#f1f5f9;font-family:Arial,sans-serif;color:#172033}
-header{background:#102a43;color:white;padding:18px 22px}
-header h2{margin:0}
-.container{max-width:1200px;margin:20px auto;padding:0 14px}
-.card{background:white;padding:18px;border-radius:12px;margin-bottom:18px;box-shadow:0 3px 12px #0000000c}
-input,select,button{padding:11px;border:1px solid #cbd5e1;border-radius:7px;font-size:14px;margin:5px 3px}
-button{background:#1769aa;color:white;border:0;cursor:pointer}
-button:hover{opacity:.9}
-.danger{background:#dc2626}
-.success{background:#15803d}
-.hidden{display:none!important}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
-.stat{background:#eff6ff;padding:14px;border-radius:9px}
-.stat b{display:block;font-size:23px;margin-top:5px}
-table{width:100%;border-collapse:collapse;min-width:750px}
-th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}
-th{background:#eaf1f8}
-.table-wrap{overflow:auto}
-.status{font-weight:bold}
-.Present{color:#15803d}
-.Late{color:#d97706}
-.Half-Day{color:#dc2626}
-.Absent{color:#64748b}
-#message{margin:10px 0;font-weight:bold}
-video{width:100%;max-width:400px;background:#111;border-radius:10px}
-</style>
-</head>
-
+*{box-sizing:border-box}body{margin:0;background:#f1f5f9;font-family:Arial,sans-serif;color:#172033}
+header{background:#172554;color:#fff;padding:18px 22px}header h2{margin:0}
+main{max-width:1100px;margin:22px auto;padding:0 14px}.panel{background:#fff;border-radius:14px;padding:18px;margin:14px 0;box-shadow:0 3px 15px #0f172a10}
+input,select{padding:11px;border:1px solid #cbd5e1;border-radius:8px;margin:5px;max-width:100%}
+button{padding:11px 15px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-weight:700;cursor:pointer;margin:5px}
+button.danger{background:#dc2626}button.gray{background:#475569}
+.hidden{display:none}.grid{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left}
+video{width:280px;max-width:100%;display:none;border-radius:10px;background:#111}
+#notice{white-space:pre-line;padding:12px;background:#eff6ff;border-radius:8px;margin-top:10px}
+.small{color:#64748b;font-size:13px}
+</style></head>
 <body>
-<header>
-<h2>Company Attendance - Admin Panel</h2>
-</header>
-
-<div class="container">
-
-<div id="loginBox" class="card">
-<h3>Admin Login</h3>
-<input id="email" type="email" placeholder="Admin Email">
-<input id="password" type="password" placeholder="Password">
-<button onclick="login()">Login</button>
-<div id="loginMessage"></div>
-</div>
-
+<header><h2>Company Attendance – Admin Panel</h2></header>
+<main>
+<section class="panel" id="loginPanel">
+ <h3>Admin Login</h3>
+ <input id="email" type="email" placeholder="Admin email">
+ <input id="password" type="password" placeholder="Password">
+ <button id="login">Login</button><div id="loginMsg" class="small"></div>
+</section>
 <div id="dashboard" class="hidden">
-
-<div class="card">
-<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">
-<h3>Admin Dashboard</h3>
-<button class="danger" onclick="logout()">Logout</button>
+ <section class="panel">
+  <div class="grid"><h3>Employee Registration</h3><button class="gray" id="logout">Logout</button></div>
+  <div class="grid"><input id="name" placeholder="Employee full name"><input id="phone" placeholder="Phone (optional)"><button id="add">Register Employee</button></div>
+  <p class="small">Employee ID is generated automatically from first/last name and plot number 85.</p>
+  <div id="newEmployee"></div>
+ </section>
+ <section class="panel">
+  <h3>Register Employee Face</h3>
+  <div class="grid"><select id="faceEmployee"><option value="">Select employee</option></select><button id="camera">Start Camera</button><button id="capture">Capture Face</button><button id="saveFace">Save 3 Face Captures</button></div>
+  <video id="video" autoplay muted playsinline></video><p id="captureCount">Captured: 0 / 3</p>
+  <p class="small">Take three clear captures: front, slight left, slight right. Only face descriptors are saved; photos are not uploaded.</p>
+ </section>
+ <section class="panel">
+  <h3>Employee List</h3><button id="refresh">Refresh Employees</button>
+  <div style="overflow-x:auto"><table><thead><tr><th>ID</th><th>Name</th><th>Status</th><th>Face</th><th>Action</th></tr></thead><tbody id="employees"></tbody></table></div>
+ </section>
+ <section class="panel">
+  <h3>Daily Attendance</h3><input type="date" id="reportDate"><button id="daily">Load Daily Report</button>
+  <div style="overflow-x:auto"><table><thead><tr><th>Employee</th><th>Status</th><th>IN</th><th>OUT</th><th>Work</th><th>OT</th></tr></thead><tbody id="dailyRows"></tbody></table></div>
+ </section>
+ <section class="panel">
+  <h3>Monthly Attendance</h3><select id="month"></select><button id="monthly">Load Monthly Report</button>
+  <div id="monthlyResult"></div>
+ </section>
 </div>
-<div id="message"></div>
-</div>
-
-<div class="card">
-<h3>Register Employee</h3>
-<div class="grid">
-<input id="empName" placeholder="Employee Name">
-<input id="empMobile" placeholder="Mobile Number">
-<input id="empId" placeholder="Employee ID" readonly>
-</div>
-<button onclick="registerEmployee()">Register Employee</button>
-</div>
-
-<div class="card">
-<h3>Employee List</h3>
-<div class="table-wrap">
-<table>
-<thead>
-<tr>
-<th>Employee ID</th>
-<th>Name</th>
-<th>Mobile</th>
-<th>Status</th>
-<th>Face</th>
-<th>Action</th>
-</tr>
-</thead>
-<tbody id="employeeTable"></tbody>
-</table>
-</div>
-</div>
-
-<div class="card">
-<h3>Face Registration</h3>
-<select id="faceEmployee">
-<option value="">Select Employee</option>
-</select>
-<br>
-<video id="camera" autoplay muted playsinline></video>
-<br>
-<button onclick="startCamera()">Open Camera</button>
-<button onclick="captureFace()">Capture Face</button>
-<button onclick="saveFace()">Save 3 Face Captures</button>
-<p id="faceMessage"></p>
-<p>Employee के सामने से 1 capture, थोड़ा बाएं से 1 और थोड़ा दाएं से 1 capture लें।</p>
-</div>
-
-<div class="card">
-<h3>Daily Attendance Report</h3>
-<input type="date" id="dailyDate">
-<button onclick="loadDailyReport()">Show Daily Report</button>
-<div class="grid" id="dailyStats"></div>
-<div class="table-wrap">
-<table>
-<thead>
-<tr>
-<th>Employee ID</th>
-<th>Name</th>
-<th>IN</th>
-<th>OUT</th>
-<th>Work Hours</th>
-<th>OT Hours</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody id="dailyTable"></tbody>
-</table>
-</div>
-</div>
-
-<div class="card">
-<h3>Monthly Attendance Report</h3>
-<input type="month" id="monthlyDate">
-<button onclick="loadMonthlyReport()">Show Monthly Report</button>
-<div class="grid" id="monthlyStats"></div>
-<div class="table-wrap">
-<table>
-<thead>
-<tr>
-<th>Employee ID</th>
-<th>Name</th>
-<th>Present</th>
-<th>Late</th>
-<th>Half Day</th>
-<th>Absent</th>
-<th>Total OT Hours</th>
-</tr>
-</thead>
-<tbody id="monthlyTable"></tbody>
-</table>
-</div>
-</div>
-
-<div class="card">
-<h3>Daily Employee Details</h3>
-<p>किसी कर्मचारी का महीने का रोजाना रिकॉर्ड देखने के लिए नीचे Employee ID चुनें।</p>
-<select id="detailEmployee"></select>
-<input type="month" id="detailMonth">
-<button onclick="showEmployeeDetails()">Show Details</button>
-<div class="table-wrap">
-<table>
-<thead>
-<tr>
-<th>Date</th>
-<th>IN</th>
-<th>OUT</th>
-<th>Work Hours</th>
-<th>OT Hours</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody id="detailTable"></tbody>
-</table>
-</div>
-</div>
-
-</div>
-</div>
-
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyCf8VATHo9dmDav73IX1i_WWuBprrj7Zg",
-  authDomain: "company-attendance-8bbb1.firebaseapp.com",
-  databaseURL: "https://company-attendance-8bbb1-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "company-attendance-8bbb1",
-  storageBucket: "company-attendance-8bbb1.firebasestorage.app",
-  messagingSenderId: "528681450890",
-  appId: "1:528681450890:web:fa49fe969b9c23f2de5c73",
-  measurementId: "G-BHG5DXXTFF"
+<div id="notice">Sign in with the administrator account.</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.js"></script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getDatabase,ref,get,set,remove,update} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+const firebaseConfig={
+ apiKey:"AIzaSyAtQDdI2P9MgeTAEWKpdEgsS6KCNO1fXnw",
+ authDomain:"company-attendance-8bbb1.firebaseapp.com",
+ databaseURL:"https://company-attendance-8bbb1-default-rtdb.asia-southeast1.firebasedatabase.app",
+ projectId:"company-attendance-8bbb1",
+ storageBucket:"company-attendance-8bbb1.firebasestorage.app",
+ messagingSenderId:"528681450890",
+ appId:"1:528681450890:web:65c943b5b8e72557de5c73",
+ measurementId:"G-KYSG7CD4W3"
 };
-
-firebase.initializeApp(firebaseConfig);
-
-const auth = firebase.auth();
-const db = firebase.database();
-
-const WORKER_URL =
-"https://morning-boat-14f9.pratikprabhakar200.workers.dev";
-
-const ADMIN_UID = "83VXGyZpVkU9pTkWP4tPxSYt9OU2";
-
-let employees = {};
-let capturedDescriptors = [];
-let cameraStream = null;
-let faceModelsLoaded = false;
-
-const today = new Date();
-const localDate = new Date(
-  today.getTime() - today.getTimezoneOffset() * 60000
-).toISOString().slice(0,10);
-
-const currentMonth = localDate.slice(0,7);
-
-document.getElementById("dailyDate").value = localDate;
-document.getElementById("monthlyDate").value = currentMonth;
-document.getElementById("detailMonth").value = currentMonth;
-
-function showMessage(message, color="green") {
-  const el = document.getElementById("message");
-  el.textContent = message;
-  el.style.color = color;
+const WORKER="https://morning-boat-14f9.pratikprabhakar200.workers.dev";
+const MODEL="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/model/";
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app);
+const $=id=>document.getElementById(id);let employees={},stream=null,captures=[],modelsReady=false;
+function note(t){$("notice").textContent=t}
+const today=new Date();$("reportDate").value=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+for(let i=0;i<12;i++){let d=new Date(today.getFullYear(),today.getMonth()-i,1);let o=document.createElement("option");o.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;o.textContent=d.toLocaleString("en-IN",{month:"long",year:"numeric"});$("month").append(o)}
+async function token(){return auth.currentUser.getIdToken(true)}
+async function worker(path,body){let t=await token();let r=await fetch(WORKER+path,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+t},body:JSON.stringify(body)});let d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||d.message||`Worker error ${r.status}`);return d}
+$("login").onclick=async()=>{try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);$("loginMsg").textContent="Login successful"}catch(e){$("loginMsg").textContent=e.message}};
+$("logout").onclick=()=>signOut(auth);
+onAuthStateChanged(auth,u=>{let ok=!!u&&u.uid==="83VXGyZpVkU9pTkWP4tPxSYt9OU2";$("loginPanel").classList.toggle("hidden",ok);$("dashboard").classList.toggle("hidden",!ok);if(ok)refresh()});
+async function refresh(){
+ try{let s=await get(ref(db,"employees"));employees=s.val()||{};render();note("Employees loaded.");}
+ catch(e){note("Database error: "+e.message)}
 }
-
-function setLoginMessage(message) {
-  document.getElementById("loginMessage").textContent = message;
+function render(){
+ $("employees").innerHTML="";$("faceEmployee").innerHTML='<option value="">Select employee</option>';
+ Object.entries(employees).forEach(([id,e])=>{
+  let op=document.createElement("option");op.value=id;op.textContent=`${id} - ${e.name}`;$("faceEmployee").append(op);
+  let tr=document.createElement("tr");tr.innerHTML=`<td>${id}</td><td>${escapeHtml(e.name||"")}</td><td>${e.status||"Active"}</td><td>${e.faceRegistered?"Registered":"Pending"}</td><td><button class="gray" data-toggle="${id}">${e.status==="Inactive"?"Activate":"Deactivate"}</button><button class="danger" data-delete="${id}">Delete</button></td>`;$("employees").append(tr);
+ });
 }
-
-async function login() {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-
-  try {
-    const result = await auth.signInWithEmailAndPassword(email,password);
-
-    if (result.user.uid !== ADMIN_UID) {
-      await auth.signOut();
-      throw new Error("Admin access denied");
-    }
-
-    setLoginMessage("Login successful");
-    await openDashboard();
-
-  } catch(error) {
-    setLoginMessage(error.message);
-  }
-}
-
-async function logout() {
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(track => track.stop());
-  }
-  await auth.signOut();
-  location.reload();
-}
-
-auth.onAuthStateChanged(async user => {
-  if (!user) return;
-
-  if (user.uid !== ADMIN_UID) {
-    await auth.signOut();
-    return;
-  }
-
-  await openDashboard();
-});
-
-async function openDashboard() {
-  document.getElementById("loginBox").classList.add("hidden");
-  document.getElementById("dashboard").classList.remove("hidden");
-  await loadEmployees();
-}
-
-function generateEmployeeId(name) {
-  const clean = name.trim().replace(/[^a-zA-Z]/g,"");
-
-  if (!clean) return "";
-
-  const first = clean[0].toUpperCase();
-  const last = clean[clean.length-1].toUpperCase();
-
-  let serial = 1;
-
-  while (employees[`${first}${last}-85${String(serial).padStart(2, "0")}`]) {
-    serial++;
-  }
-
-  return `${first}${last}-85${String(serial).padStart(2,"0")}`;
-}
-
-document.getElementById("empName").addEventListener("input", () => {
-  document.getElementById("empId").value =
-    generateEmployeeId(document.getElementById("empName").value);
-});
-
-async function loadEmployees() {
-  const snapshot = await db.ref("employees").once("value");
-  employees = snapshot.val() || {};
-
-  renderEmployees();
-}
-
-function renderEmployees() {
-  const table = document.getElementById("employeeTable");
-  const faceSelect = document.getElementById("faceEmployee");
-  const detailSelect = document.getElementById("detailEmployee");
-
-  table.innerHTML = "";
-  faceSelect.innerHTML = '<option value="">Select Employee</option>';
-  detailSelect.innerHTML = '<option value="">Select Employee</option>';
-
-  for (const [id,emp] of Object.entries(employees)) {
-    if (!emp) continue;
-
-    const faceStatus = emp.faceRegistered ? "Registered" : "Pending";
-
-    const tr = document.createElement("tr");
-
-    const values = [
-      id,
-      emp.name || "",
-      emp.mobile || "",
-      emp.status || "",
-      faceStatus
-    ];
-
-    values.forEach(value => {
-      const td = document.createElement("td");
-      td.textContent = value;
-      tr.appendChild(td);
-    });
-
-    const action = document.createElement("td");
-    const toggle = document.createElement("button");
-
-    toggle.textContent =
-      emp.status === "Active" ? "Deactivate" : "Activate";
-
-    toggle.onclick = () => toggleEmployee(id,emp);
-
-    const remove = document.createElement("button");
-    remove.textContent = "Delete";
-    remove.className = "danger";
-    remove.onclick = () => deleteEmployee(id);
-
-    action.append(toggle,remove);
-    tr.appendChild(action);
-    table.appendChild(tr);
-
-    const option1 = new Option(`${id} - ${emp.name || ""}`,id);
-    const option2 = new Option(`${id} - ${emp.name || ""}`,id);
-
-    faceSelect.add(option1);
-    detailSelect.add(option2);
-  }
-}
-
-async function registerEmployee() {
-  const name = document.getElementById("empName").value.trim();
-  const mobile = document.getElementById("empMobile").value.trim();
-  const employeeId = document.getElementById("empId").value.trim();
-
-  if (!name || !mobile || !employeeId) {
-    showMessage("Name और Mobile भरें", "red");
-    return;
-  }
-
-  if (!/^[0-9]{10}$/.test(mobile)) {
-    showMessage("10 digit mobile number डालें", "red");
-    return;
-  }
-
-  if (employees[employeeId]) {
-    showMessage("Employee ID already exists", "red");
-    return;
-  }
-
-  try {
-    await db.ref("employees/" + employeeId).set({
-      name,
-      mobile,
-      status: "Active",
-      faceRegistered: false,
-      createdAt: new Date().toISOString()
-    });
-
-    document.getElementById("empName").value = "";
-    document.getElementById("empMobile").value = "";
-    document.getElementById("empId").value = "";
-
-    await loadEmployees();
-    showMessage("Employee registered successfully");
-
-  } catch(error) {
-    showMessage(error.message,"red");
-  }
-}
-
-async function toggleEmployee(id,emp) {
-  const newStatus =
-    emp.status === "Active" ? "Inactive" : "Active";
-
-  await db.ref("employees/" + id + "/status").set(newStatus);
-
-  await loadEmployees();
-  showMessage("Employee status updated");
-}
-
-async function deleteEmployee(id) {
-  const confirmed = confirm(
-    `क्या आप ${id} को हमेशा के लिए हटाना चाहते हैं? इसके सभी attendance records और face descriptors भी हट जाएंगे।`
-  );
-
-  if (!confirmed) return;
-
-  try {
-    await db.ref("employees/" + id).remove();
-    await db.ref("attendance/" + id).remove();
-
-    await loadEmployees();
-    showMessage("Employee and attendance records deleted");
-
-  } catch(error) {
-    showMessage(error.message,"red");
-  }
-}
-
-// ==========================================
-// FACE REGISTRATION
-// ==========================================
-
-async function loadFaceModels() {
-  if (faceModelsLoaded) return;
-
-  if (!window.faceapi) {
-    await new Promise((resolve,reject) => {
-      const script = document.createElement("script");
-      script.src =
-      "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.js";
-
-      script.onload = resolve;
-      script.onerror = reject;
-      document.head.appendChild(script);
-    });
-  }
-
-  const modelUrl =
-  "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/model/";
-
-  await faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl);
-  await faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl);
-  await faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl);
-
-  faceModelsLoaded = true;
-}
-
-async function startCamera() {
-  try {
-    await loadFaceModels();
-
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: "user",
-        width: 640,
-        height: 480
-      },
-      audio: false
-    });
-
-    document.getElementById("camera").srcObject = cameraStream;
-    document.getElementById("faceMessage").textContent =
-      "Camera started. Capture 3 face angles.";
-
-  } catch(error) {
-    document.getElementById("faceMessage").textContent =
-      "Camera error: " + error.message;
-  }
-}
-
-async function captureFace() {
-  try {
-    const video = document.getElementById("camera");
-
-    if (!video.srcObject || video.readyState < 2) {
-      throw new Error("पहले Camera Open करें");
-    }
-
-    await loadFaceModels();
-
-    const result = await faceapi
-      .detectSingleFace(
-        video,
-        new faceapi.TinyFaceDetectorOptions()
-      )
-      .withFaceLandmarks()
-      .withFaceDescriptor();
-
-    if (!result) {
-      throw new Error("Face नहीं मिला। Camera के सामने आएं।");
-    }
-
-    capturedDescriptors.push(
-      Array.from(result.descriptor)
-    );
-
-    document.getElementById("faceMessage").textContent =
-      `Captured ${capturedDescriptors.length}/3`;
-
-    if (capturedDescriptors.length === 3) {
-      document.getElementById("faceMessage").textContent =
-        "3 captures complete. अब Save Face Captures दबाएं।";
-    }
-
-  } catch(error) {
-    document.getElementById("faceMessage").textContent =
-      error.message;
-  }
-}
-
-async function saveFace() {
-  try {
-    const employeeId =
-      document.getElementById("faceEmployee").value;
-
-    if (!employeeId) {
-      throw new Error("Employee select करें");
-    }
-
-    if (capturedDescriptors.length !== 3) {
-      throw new Error("पहले 3 face captures लें");
-    }
-
-    const user = auth.currentUser;
-
-    const token = await user.getIdToken(true);
-
-    const response = await fetch(
-      WORKER_URL + "/face-register",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + token
-        },
-        body: JSON.stringify({
-          employeeId,
-          descriptors: capturedDescriptors
-        })
-      }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || "Face registration failed");
-    }
-
-    capturedDescriptors = [];
-
-    document.getElementById("faceMessage").textContent =
-      "Face Registered Successfully";
-
-    await loadEmployees();
-
-  } catch(error) {
-    document.getElementById("faceMessage").textContent =
-      error.message;
-  }
-}
-
-// ==========================================
-// ATTENDANCE HELPERS
-// ==========================================
-
-function getSummary(events) {
-  const list = Object.values(events || {})
-    .filter(e => e && Number.isFinite(Number(e.timestamp)))
-    .sort((a,b) => Number(a.timestamp)-Number(b.timestamp));
-
-  let firstIn = null;
-  let lastOut = null;
-  let punchedIn = false;
-
-  for (const event of list) {
-    if (event.action === "IN") {
-      if (firstIn === null) firstIn = Number(event.timestamp);
-      punchedIn = true;
-    } else if (event.action === "OUT" && punchedIn) {
-      lastOut = Number(event.timestamp);
-      punchedIn = false;
-    }
-  }
-
-  let minutes = 0;
-
-  if (firstIn && lastOut && !punchedIn) {
-    minutes = Math.max(0,Math.floor((lastOut-firstIn)/60000));
-  }
-
-  let status = "Absent";
-
-  if (firstIn) {
-    const time = new Intl.DateTimeFormat("en-GB",{
-      timeZone:"Asia/Kolkata",
-      hour:"2-digit",
-      minute:"2-digit",
-      hour12:false
-    }).format(new Date(firstIn));
-
-    const arrivalMinutes =
-      Number(time.slice(0,2))*60 + Number(time.slice(3,5));
-
-    status = arrivalMinutes > 600
-      ? "Half Day"
-      : arrivalMinutes > 570
-        ? "Late"
-        : "Present";
-  }
-
-  return {
-    firstIn: firstIn ? new Date(firstIn) : null,
-    lastOut: lastOut ? new Date(lastOut) : null,
-    workMinutes: minutes,
-    otMinutes: Math.max(0,minutes-480),
-    status,
-    punchedIn
-  };
-}
-
-function formatHours(minutes) {
-  return (minutes/60).toFixed(2);
-}
-
-function formatTime(date) {
-  if (!date) return "-";
-
-  return new Intl.DateTimeFormat("en-IN",{
-    timeZone:"Asia/Kolkata",
-    hour:"2-digit",
-    minute:"2-digit",
-    hour12:true
-  }).format(date);
-}
-
-function statusClass(status) {
-  return status.replace(" ","-");
-}
-
-// ==========================================
-// DAILY REPORT
-// ==========================================
-
-async function loadDailyReport() {
-  try {
-    const date = document.getElementById("dailyDate").value;
-
-    if (!date) {
-      showMessage("Date select करें","red");
-      return;
-    }
-
-    const snapshot = await db.ref("attendance").once("value");
-    const attendance = snapshot.val() || {};
-
-    const table = document.getElementById("dailyTable");
-    table.innerHTML = "";
-
-    let totals = {
-      present:0,
-      late:0,
-      halfDay:0,
-      absent:0,
-      overtime:0
-    };
-
-    for (const [id,emp] of Object.entries(employees)) {
-      if (!emp) continue;
-
-      const events =
-        attendance[id]?.[date]?.events || {};
-
-      const summary = getSummary(events);
-
-      if (summary.status === "Present") totals.present++;
-      else if (summary.status === "Late") totals.late++;
-      else if (summary.status === "Half Day") totals.halfDay++;
-      else totals.absent++;
-
-      totals.overtime += summary.otMinutes;
-
-      const tr = document.createElement("tr");
-
-      const values = [
-        id,
-        emp.name || "",
-        formatTime(summary.firstIn),
-        formatTime(summary.lastOut),
-        summary.punchedIn
-          ? "In Progress"
-          : formatHours(summary.workMinutes),
-        formatHours(summary.otMinutes),
-        summary.status
-      ];
-
-      values.forEach((value,index) => {
-        const td = document.createElement("td");
-        td.textContent = value;
-
-        if (index === 6) {
-          td.className = "status " + statusClass(summary.status);
-        }
-
-        tr.appendChild(td);
-      });
-
-      table.appendChild(tr);
-    }
-
-    document.getElementById("dailyStats").innerHTML = `
-      <div class="stat">Present<b>${totals.present}</b></div>
-      <div class="stat">Late<b>${totals.late}</b></div>
-      <div class="stat">Half Day<b>${totals.halfDay}</b></div>
-      <div class="stat">Absent<b>${totals.absent}</b></div>
-      <div class="stat">Total OT Hours<b>${formatHours(totals.overtime)}</b></div>
-    `;
-
-    showMessage("Daily report loaded");
-
-  } catch(error) {
-    showMessage(error.message,"red");
-  }
-}
-
-// ==========================================
-// MONTHLY REPORT
-// ==========================================
-
-async function loadMonthlyReport() {
-  try {
-    const month = document.getElementById("monthlyDate").value;
-
-    if (!month) {
-      showMessage("Month select करें","red");
-      return;
-    }
-
-    const user = auth.currentUser;
-    const token = await user.getIdToken(true);
-
-    const response = await fetch(
-      WORKER_URL + "/monthly-report",
-      {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "Authorization":"Bearer "+token
-        },
-        body:JSON.stringify({month})
-      }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || "Monthly report failed");
-    }
-
-    const table = document.getElementById("monthlyTable");
-    table.innerHTML = "";
-
-    for (const employee of result.employees) {
-      const tr = document.createElement("tr");
-
-      const values = [
-        employee.employeeId,
-        employee.employeeName,
-        employee.totals.present,
-        employee.totals.late,
-        employee.totals.halfDay,
-        employee.totals.absent,
-        employee.totals.overtimeHours.toFixed(2)
-      ];
-
-      values.forEach(value => {
-        const td = document.createElement("td");
-        td.textContent = value;
-        tr.appendChild(td);
-      });
-
-      table.appendChild(tr);
-    }
-
-    document.getElementById("monthlyStats").innerHTML = `
-      <div class="stat">Present<b>${result.totals.present}</b></div>
-      <div class="stat">Late<b>${result.totals.late}</b></div>
-      <div class="stat">Half Day<b>${result.totals.halfDay}</b></div>
-      <div class="stat">Absent<b>${result.totals.absent}</b></div>
-      <div class="stat">Total OT Hours<b>${result.totals.overtimeHours.toFixed(2)}</b></div>
-    `;
-
-    showMessage("Monthly report loaded");
-
-  } catch(error) {
-    showMessage(error.message,"red");
-  }
-}
-
-// ==========================================
-// EMPLOYEE MONTHLY DETAILS
-// ==========================================
-
-async function showEmployeeDetails() {
-  try {
-    const employeeId =
-      document.getElementById("detailEmployee").value;
-
-    const month =
-      document.getElementById("detailMonth").value;
-
-    if (!employeeId || !month) {
-      showMessage("Employee और Month select करें","red");
-      return;
-    }
-
-    const snapshot = await db.ref(
-      "attendance/" + employeeId
-    ).once("value");
-
-    const attendance = snapshot.val() || {};
-    const table = document.getElementById("detailTable");
-
-    table.innerHTML = "";
-
-    const [year,monthNumber] = month.split("-").map(Number);
-    const days = new Date(year,monthNumber,0).getDate();
-
-    for (let day=1;day<=days;day++) {
-      const date =
-        `${month}-${String(day).padStart(2,"0")}`;
-
-      const events =
-        attendance[date]?.events || {};
-
-      const summary = getSummary(events);
-
-      const tr = document.createElement("tr");
-
-      const values = [
-        date,
-        formatTime(summary.firstIn),
-        formatTime(summary.lastOut),
-        summary.punchedIn
-          ? "In Progress"
-          : formatHours(summary.workMinutes),
-        formatHours(summary.otMinutes),
-        summary.status
-      ];
-
-      values.forEach((value,index) => {
-        const td = document.createElement("td");
-        td.textContent = value;
-
-        if (index === 5) {
-          td.className = "status " + statusClass(summary.status);
-        }
-
-        tr.appendChild(td);
-      });
-
-      table.appendChild(tr);
-    }
-
-    showMessage("Employee monthly details loaded");
-
-  } catch(error) {
-    showMessage(error.message,"red");
-  }
-}
-</script>
-
-</body>
-</html>
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+$("refresh").onclick=refresh;
+$("add").onclick=async()=>{
+ try{
+  let name=$("name").value.trim();if(!name)throw Error("Enter employee name");
+  let first=name.trim().split(/\s+/)[0],last=name.trim().split(/\s+/).slice(-1)[0];
+  let initials=(first[0]+last.slice(-1)).toUpperCase();
+  let snap=await get(ref(db,"employeeSerial"));let serial=(Number(snap.val())||0)+1;
+  let id=`${initials}-85${String(serial).padStart(2,"0")}`;
+  await set(ref(db,"employeeSerial"),serial);
+  await set(ref(db,"employees/"+id),{employeeId:id,name,phone:$("phone").value.trim(),status:"Active",faceRegistered:false,createdAt:Date.now()});
+  $("name").value="";$("phone").value="";$("newEmployee").textContent="Registered: "+id+" — "+name;await refresh();
+ }catch(e){note("Registration error: "+e.message)}
+};
+$("employees").onclick=async ev=>{
+ let id=ev.target.dataset.toggle||ev.target.dataset.delete;if(!id)return;
+ try{
+  if(ev.target.dataset.toggle){let status=employees[id].status==="Inactive"?"Active":"Inactive";await update(ref(db,"employees/"+id),{status});}
+  else if(confirm(`Permanently delete ${id}, its face data and attendance?`)){await remove(ref(db,"employees/"+id));await remove(ref(db,"attendance/"+id));}
+  await refresh();
+ }catch(e){note("Action failed: "+e.message)}
+};
+async function loadModels(){if(modelsReady)return;await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL);await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL);await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL);modelsReady=true}
+$("camera").onclick=async()=>{
+ try{await loadModels();stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});$("video").srcObject=stream;$("video").style.display="block";captures=[];$("captureCount").textContent="Captured: 0 / 3";note("Camera ready. Capture front, slight left and slight right.");}
+ catch(e){note("Camera error: "+e.message)}
+};
+$("capture").onclick=async()=>{
+ try{if(!stream)throw Error("Start camera first");if(captures.length>=3)throw Error("Already captured 3 faces");
+ let r=await faceapi.detectSingleFace($("video"),new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();if(!r)throw Error("Face not detected. Improve lighting.");
+ captures.push(Array.from(r.descriptor));$("captureCount").textContent=`Captured: ${captures.length} / 3`;
+ }catch(e){note(e.message)}
+};
+$("saveFace").onclick=async()=>{
+ try{let id=$("faceEmployee").value;if(!id)throw Error("Select employee");if(captures.length!==3)throw Error("Capture exactly 3 face samples");
+ await worker("/face-register",{employeeId:id,descriptors:captures});
+ await update(ref(db,"employees/"+id),{faceRegistered:true});captures=[];$("captureCount").textContent="Captured: 0 / 3";await refresh();note("Face registration saved for "+id);
+ }catch(e){note("Face registration error: "+e.message)}
+};
+function fmt(v){return v==null?"—":v}
+$("daily").onclick=async()=>{
+ try{
+  let date=$("reportDate").value;if(!date)throw Error("Choose date");
+  let snap=await get(ref(db,"attendance"));let all=snap.val()||{};$("dailyRows").innerHTML="";
+  Object.entries(employees).forEach(([id,e])=>{
+   let events=all[id]?.[date];let arr=events?Object.values(events).sort((a,b)=>(a.timestamp||0)-(b.timestamp||0)):[];
+   let ins=arr.filter(x=>x.action==="IN"),outs=arr.filter(x=>x.action==="OUT");
+   let first=ins[0],last=outs[outs.length-1],work=first&&last?Math.max(0,Math.floor((last.timestamp-first.timestamp)/60000)):null;
+   let hours=work===null?"—":`${Math.floor(work/60)}h ${work%60}m`,ot=work===null?"—":`${Math.floor(Math.max(0,work-480)/60)}h ${Math.max(0,work-480)%60}m`;
+   let status="Absent";if(first){let t=first.time||"";status=t<="09:30"?"Present":t<"10:00"?"Late":"Half Day";if(!last)status+=" (In)";}
+   let tr=document.createElement("tr");[`${e.name} (${id})`,status,fmt(first?.time),fmt(last?.time),hours,ot].forEach(v=>{let td=document.createElement("td");td.textContent=v;tr.append(td)});$("dailyRows").append(tr);
+  });
+  note("Daily report loaded. Work duration includes the time between first IN and final OUT.");
+ }catch(e){note("Report error: "+e.message)}
+};
+$("monthly").onclick=async()=>{
+ try{let d=await worker("/monthly-report",{month:$("month").value});let rows=d.report||d.employees||[];$("monthlyResult").textContent=JSON.stringify(d,null,2);note("Monthly report received from Worker.");}
+ catch(e){note("Monthly report error: "+e.message)}
+};
+</script></body></html>

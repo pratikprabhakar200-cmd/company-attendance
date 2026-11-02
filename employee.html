@@ -1,292 +1,626 @@
 
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Company Attendance</title>
 
 <style>
-*{box-sizing:border-box;font-family:Arial,sans-serif}
-body{margin:0;background:#f1f5f9;color:#172554;padding:16px}
-.container{max-width:430px;margin:35px auto;background:white;padding:24px;border-radius:16px;box-shadow:0 5px 25px #0001;text-align:center}
-h2{margin-bottom:5px}
-p{color:#64748b}
-button{width:100%;padding:15px;border:0;border-radius:9px;background:#2563eb;color:white;font-size:16px;margin:8px 0;cursor:pointer}
-button:disabled{opacity:.5}
-.green{background:#16a34a}
-.red{background:#dc2626}
-.hidden{display:none!important}
-video{width:100%;border-radius:12px;background:#111;margin:12px 0}
-#message{margin-top:15px;overflow-wrap:anywhere;font-size:14px}
-.small{font-size:12px}
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background: #f2f5f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 18px;
+}
+
+.container {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  border-radius: 20px;
+  padding: 25px 20px;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0,0,0,.08);
+}
+
+.logo {
+  font-size: 42px;
+  margin-bottom: 8px;
+}
+
+h2 {
+  margin: 5px 0;
+  color: #172554;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.camera-box {
+  width: 100%;
+  height: 290px;
+  background: #111827;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.camera-placeholder {
+  position: absolute;
+  color: white;
+  font-size: 14px;
+  padding: 15px;
+}
+
+button {
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  padding: 15px;
+  margin-top: 13px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.scan-btn {
+  background: #2563eb;
+  color: white;
+}
+
+.in-btn {
+  background: #16a34a;
+  color: white;
+}
+
+.out-btn {
+  background: #dc2626;
+  color: white;
+}
+
+.reset-btn {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.employee-card {
+  display: none;
+  background: #eff6ff;
+  padding: 16px;
+  border-radius: 12px;
+  margin-top: 18px;
+  text-align: left;
+}
+
+.employee-card p {
+  margin: 7px 0;
+  color: #334155;
+}
+
+.status {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #475569;
+  min-height: 22px;
+  line-height: 1.5;
+}
+
+.success {
+  color: #15803d;
+  font-weight: bold;
+}
+
+.error {
+  color: #dc2626;
+  font-weight: bold;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.footer {
+  margin-top: 20px;
+  font-size: 11px;
+  color: #94a3b8;
+}
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
-<h2>COMPANY ATTENDANCE</h2>
-<p>EMPLOYEE FACE PUNCH SYSTEM</p>
+  <div class="logo">👤</div>
 
-<div id="startSection">
-<button id="startBtn">START FACE SCAN</button>
+  <h2>Company Attendance</h2>
+
+  <div class="subtitle">
+    Face Recognition Attendance System
+  </div>
+
+  <div class="camera-box">
+    <video id="video" autoplay muted playsinline></video>
+    <div class="camera-placeholder" id="cameraPlaceholder">
+      Camera will appear here
+    </div>
+  </div>
+
+  <button class="scan-btn" id="startBtn">
+    Start Face Scan
+  </button>
+
+  <button class="scan-btn hidden" id="scanBtn">
+    Identify My Face
+  </button>
+
+  <div class="employee-card" id="employeeCard">
+    <p><b>Employee Name:</b> <span id="employeeName">-</span></p>
+    <p><b>Employee ID:</b> <span id="employeeId">-</span></p>
+    <p><b>Attendance:</b> <span id="attendanceState">-</span></p>
+  </div>
+
+  <button class="in-btn hidden" id="inBtn">
+    PUNCH IN
+  </button>
+
+  <button class="out-btn hidden" id="outBtn">
+    PUNCH OUT
+  </button>
+
+  <button class="reset-btn hidden" id="resetBtn">
+    Scan Again
+  </button>
+
+  <div class="status" id="status">
+    Please start the camera.
+  </div>
+
+  <div class="footer">
+    Secure Attendance • Face Recognition • GPS Verification
+  </div>
+
 </div>
 
-<div id="cameraSection" class="hidden">
-<video id="video" autoplay muted playsinline></video>
-<p id="scanStatus">Camera start ho raha hai...</p>
-<button id="captureBtn" class="green" disabled>RECOGNIZE FACE</button>
-</div>
-
-<div id="punchSection" class="hidden">
-<p id="employeeInfo"></p>
-<button id="punchIn" class="green">PUNCH IN</button>
-<button id="punchOut" class="red hidden">PUNCH OUT</button>
-</div>
-
-<div id="message"></div>
-
-<p class="small">
-Face verification aur company ki 50 metre GPS boundary zaroori hai.
-</p>
-
-</div>
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.js"></script>
 
 <script type="module">
 
-import {initializeApp}
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
- getAuth,
- signInAnonymously
+  getAuth,
+  signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import * as faceapi from
-"https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.esm.js";
+// ======================================
+// FIREBASE CONFIG
+// ======================================
 
 const firebaseConfig = {
- apiKey: "AIzaSyCf8VATHo9dmDav73IX1i_WiWuBprrj7Zg",
- authDomain: "company-attendance-8bbb1.firebaseapp.com",
- databaseURL: "https://company-attendance-8bbb1-default-rtdb.asia-southeast1.firebasedatabase.app",
- projectId: "company-attendance-8bbb1",
- storageBucket: "company-attendance-8bbb1.firebasestorage.app",
- messagingSenderId: "528681450890",
- appId: "1:528681450890:web:fa49fe969b9c23f2de5c73"
+  apiKey: "AIzaSyCf8VATHo9dmDav73IX1i_WiWuBprrj7Zg",
+  authDomain: "company-attendance-8bbb1.firebaseapp.com",
+  databaseURL: "https://company-attendance-8bbb1-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "company-attendance-8bbb1",
+  storageBucket: "company-attendance-8bbb1.firebasestorage.app",
+  messagingSenderId: "528681450890",
+  appId: "1:528681450890:web:fa49fe969b9c23f2de5c73",
+  measurementId: "G-BHG5DXXTFF"
 };
-
-const WORKER_URL =
-"https://morning-boat-14f9.pratikprabhakar200.workers.dev";
-
-const MODEL_URL =
-"https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/model/";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-const $ = id => document.getElementById(id);
+// ======================================
+// WORKER URL
+// ======================================
+
+const WORKER_URL =
+  "https://morning-boat-14f9.pratikprabhakar200.workers.dev";
+
+// ======================================
+// ELEMENTS
+// ======================================
+
+const video = document.getElementById("video");
+const startBtn = document.getElementById("startBtn");
+const scanBtn = document.getElementById("scanBtn");
+const inBtn = document.getElementById("inBtn");
+const outBtn = document.getElementById("outBtn");
+const resetBtn = document.getElementById("resetBtn");
+
+const statusBox = document.getElementById("status");
+const employeeCard = document.getElementById("employeeCard");
+const cameraPlaceholder =
+  document.getElementById("cameraPlaceholder");
+
+// ======================================
+// VARIABLES
+// ======================================
 
 let cameraStream = null;
-let modelsReady = false;
+let modelsLoaded = false;
 let recognizedEmployee = null;
-let currentAction = "IN";
+let faceApiReady = false;
 
-function message(text,color="#dc2626"){
- $("message").style.color=color;
- $("message").textContent=text;
+// Descriptor is kept only in page memory.
+// It is not stored in localStorage or Firebase.
+
+// ======================================
+// STATUS MESSAGE
+// ======================================
+
+function showStatus(message, type = "") {
+  statusBox.textContent = message;
+  statusBox.className = "status " + type;
 }
 
-async function loadModels(){
- if(modelsReady) return;
+// ======================================
+// FIREBASE ANONYMOUS LOGIN
+// ======================================
 
- message("Face recognition models load ho rahe hain...","#2563eb");
+async function getAnonymousToken() {
+  let user = auth.currentUser;
 
- await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
- await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
- await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+  if (!user) {
+    const result = await signInAnonymously(auth);
+    user = result.user;
+  }
 
- modelsReady=true;
+  return await user.getIdToken(true);
 }
 
-async function getAnonymousToken(){
- if(!auth.currentUser){
-   await signInAnonymously(auth);
- }
- return await auth.currentUser.getIdToken(true);
+// ======================================
+// LOAD FACE MODELS
+// ======================================
+
+async function loadModels() {
+  if (modelsLoaded) return;
+
+  showStatus("Loading face recognition models...");
+
+  const MODEL_URL =
+    "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/model/";
+
+  await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+  await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+  await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+
+  modelsLoaded = true;
 }
 
-async function startCamera(){
- try{
-   $("startBtn").disabled=true;
-   message("Camera aur face system start ho raha hai...","#2563eb");
+// ======================================
+// START CAMERA
+// ======================================
 
-   await loadModels();
-   await getAnonymousToken();
+startBtn.addEventListener("click", async () => {
+  try {
+    startBtn.disabled = true;
+    showStatus("Starting camera...");
 
-   cameraStream=await navigator.mediaDevices.getUserMedia({
-     video:{facingMode:"user"},
-     audio:false
-   });
+    await getAnonymousToken();
+    await loadModels();
 
-   $("video").srcObject=cameraStream;
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: "user",
+        width: { ideal: 640 },
+        height: { ideal: 480 }
+      },
+      audio: false
+    });
 
-   $("startSection").classList.add("hidden");
-   $("cameraSection").classList.remove("hidden");
+    video.srcObject = cameraStream;
 
-   $("scanStatus").textContent="Camera ready. Seedha camera ki taraf dekhein.";
-   message("Camera ready","#16a34a");
+    await new Promise(resolve => {
+      video.onloadedmetadata = resolve;
+    });
 
- }catch(error){
-   message("Start error: "+error.message);
-   $("startBtn").disabled=false;
- }
-}
+    await video.play();
 
-$("video").addEventListener("playing",()=>{
- $("captureBtn").disabled=false;
+    cameraPlaceholder.classList.add("hidden");
+    startBtn.classList.add("hidden");
+    scanBtn.classList.remove("hidden");
+
+    showStatus("Camera ready. Look at the camera.");
+
+  } catch (error) {
+    console.error(error);
+    startBtn.disabled = false;
+    showStatus(
+      "Camera or login error: " + error.message,
+      "error"
+    );
+  }
 });
 
-async function recognizeFace(){
- try{
-   $("captureBtn").disabled=true;
-   message("Aapka face verify ho raha hai...","#2563eb");
+// ======================================
+// GET FACE DESCRIPTOR
+// ======================================
 
-   const result=await faceapi
-     .detectSingleFace(
-       $("video"),
-       new faceapi.TinyFaceDetectorOptions()
-     )
-     .withFaceLandmarks()
-     .withFaceDescriptor();
+async function captureFaceDescriptor() {
+  const detection = await faceapi
+    .detectSingleFace(
+      video,
+      new faceapi.TinyFaceDetectorOptions({
+        inputSize: 416,
+        scoreThreshold: 0.5
+      })
+    )
+    .withFaceLandmarks()
+    .withFaceDescriptor();
 
-   if(!result){
-     throw new Error("Face detect nahi hua. Dobara try karein.");
-   }
+  if (!detection) {
+    throw new Error(
+      "Face not detected. Look directly at the camera."
+    );
+  }
 
-   const descriptor=Array.from(result.descriptor);
-
-   const position=await getGPS();
-   const token=await getAnonymousToken();
-
-   const response=await fetch(WORKER_URL+"/face-punch",{
-     method:"POST",
-     headers:{
-       "Content-Type":"application/json",
-       "Authorization":"Bearer "+token
-     },
-     body:JSON.stringify({
-       descriptor,
-       action:"IN",
-       latitude:position.coords.latitude,
-       longitude:position.coords.longitude
-     })
-   });
-
-   const data=await response.json();
-
-   if(!response.ok||!data.success){
-     throw new Error(data.message||"Face verification failed");
-   }
-
-   recognizedEmployee=data;
-
-   $("cameraSection").classList.add("hidden");
-   $("punchSection").classList.remove("hidden");
-
-   $("employeeInfo").textContent=
-     "Employee: "+data.employeeName+
-     " | ID: "+data.employeeId;
-
-   $("punchIn").classList.remove("hidden");
-   $("punchOut").classList.add("hidden");
-
-   message("Face recognized successfully. Ab Punch IN karein.","#16a34a");
-
- }catch(error){
-   message(error.message);
-   $("captureBtn").disabled=false;
- }
+  return Array.from(detection.descriptor);
 }
 
-function getGPS(){
- return new Promise((resolve,reject)=>{
-   if(!navigator.geolocation){
-     reject(new Error("GPS is not supported"));
-     return;
-   }
+// ======================================
+// API REQUEST
+// ======================================
 
-   navigator.geolocation.getCurrentPosition(
-     resolve,
-     error=>reject(new Error("GPS error: "+error.message)),
-     {
-       enableHighAccuracy:true,
-       timeout:20000,
-       maximumAge:0
-     }
-   );
- });
+async function workerRequest(route, data) {
+  const token = await getAnonymousToken();
+
+  const response = await fetch(
+    WORKER_URL + route,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify(data)
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok || !result.success) {
+    throw new Error(
+      result.message || "Server request failed"
+    );
+  }
+
+  return result;
 }
 
-async function punch(action){
- try{
-   $("punchIn").disabled=true;
-   $("punchOut").disabled=true;
+// ======================================
+// IDENTIFY FACE
+// ======================================
 
-   message("GPS location check ho rahi hai...","#2563eb");
+scanBtn.addEventListener("click", async () => {
+  try {
+    scanBtn.disabled = true;
+    showStatus("Scanning face...");
 
-   const position=await getGPS();
-   const token=await getAnonymousToken();
+    const descriptor = await captureFaceDescriptor();
 
-   const response=await fetch(WORKER_URL+"/face-punch",{
-     method:"POST",
-     headers:{
-       "Content-Type":"application/json",
-       "Authorization":"Bearer "+token
-     },
-     body:JSON.stringify({
-       descriptor:recognizedEmployee.descriptor,
-       action,
-       latitude:position.coords.latitude,
-       longitude:position.coords.longitude
-     })
-   });
+    showStatus("Checking employee identity...");
 
-   const data=await response.json();
+    // IMPORTANT:
+    // This endpoint identifies the employee only.
+    // It does NOT create attendance.
 
-   if(!response.ok||!data.success){
-     throw new Error(data.message||"Punch failed");
-   }
+    const result = await workerRequest(
+      "/face-identify",
+      { descriptor }
+    );
 
-   message(
-     data.message+
-     " | "+data.date+
-     " | "+data.time+
-     " | GPS "+data.distanceMeters+" metres",
-     "#16a34a"
-   );
+    recognizedEmployee = {
+      employeeId: result.employeeId,
+      employeeName: result.employeeName,
+      descriptor: descriptor
+    };
 
-   if(action==="IN"){
-     $("punchIn").classList.add("hidden");
-     $("punchOut").classList.remove("hidden");
-   }else{
-     $("punchOut").classList.add("hidden");
-     $("punchIn").classList.remove("hidden");
-   }
+    document.getElementById("employeeName").textContent =
+      result.employeeName;
 
- }catch(error){
-   message(error.message);
- }finally{
-   $("punchIn").disabled=false;
-   $("punchOut").disabled=false;
- }
+    document.getElementById("employeeId").textContent =
+      result.employeeId;
+
+    employeeCard.style.display = "block";
+
+    if (result.currentlyPunchedIn) {
+      document.getElementById("attendanceState").textContent =
+        "Already Punched IN";
+
+      inBtn.classList.add("hidden");
+      outBtn.classList.remove("hidden");
+
+    } else {
+      document.getElementById("attendanceState").textContent =
+        "Not Punched IN";
+
+      outBtn.classList.add("hidden");
+      inBtn.classList.remove("hidden");
+    }
+
+    scanBtn.classList.add("hidden");
+    resetBtn.classList.remove("hidden");
+
+    showStatus(
+      "Face identified successfully. Please select your attendance action.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(error);
+    recognizedEmployee = null;
+    showStatus(error.message, "error");
+  } finally {
+    scanBtn.disabled = false;
+  }
+});
+
+// ======================================
+// GET GPS LOCATION
+// ======================================
+
+function getGPS() {
+  return new Promise((resolve, reject) => {
+
+    if (!navigator.geolocation) {
+      reject(new Error("GPS is not supported by this device."));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy
+        });
+      },
+      error => {
+        reject(
+          new Error(
+            "GPS permission required. Please allow location."
+          )
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 0
+      }
+    );
+
+  });
 }
 
-$("startBtn").onclick=startCamera;
-$("captureBtn").onclick=recognizeFace;
-$("punchIn").onclick=()=>punch("IN");
-$("punchOut").onclick=()=>punch("OUT");
+// ======================================
+// PUNCH IN / OUT
+// ======================================
+
+async function punchAttendance(action) {
+
+  if (!recognizedEmployee) {
+    showStatus("Please scan your face first.", "error");
+    return;
+  }
+
+  const button = action === "IN" ? inBtn : outBtn;
+
+  try {
+    button.disabled = true;
+    showStatus("Checking GPS location...");
+
+    const gps = await getGPS();
+
+    showStatus("Verifying company location...");
+
+    const result = await workerRequest(
+      "/face-punch",
+      {
+        descriptor: recognizedEmployee.descriptor,
+        action: action,
+        latitude: gps.latitude,
+        longitude: gps.longitude
+      }
+    );
+
+    document.getElementById("attendanceState").textContent =
+      action === "IN" ? "Punched IN" : "Punched OUT";
+
+    showStatus(
+      `Punch ${action} successful! Time: ${result.time}. Distance: ${result.distanceMeters} metres.`,
+      "success"
+    );
+
+    if (action === "IN") {
+      inBtn.classList.add("hidden");
+      outBtn.classList.remove("hidden");
+    } else {
+      outBtn.classList.add("hidden");
+      inBtn.classList.remove("hidden");
+    }
+
+  } catch (error) {
+    console.error(error);
+    showStatus(error.message, "error");
+  } finally {
+    button.disabled = false;
+  }
+}
+
+inBtn.addEventListener("click", () => {
+  punchAttendance("IN");
+});
+
+outBtn.addEventListener("click", () => {
+  punchAttendance("OUT");
+});
+
+// ======================================
+// RESET / SCAN AGAIN
+// ======================================
+
+resetBtn.addEventListener("click", () => {
+
+  recognizedEmployee = null;
+
+  employeeCard.style.display = "none";
+
+  inBtn.classList.add("hidden");
+  outBtn.classList.add("hidden");
+
+  resetBtn.classList.add("hidden");
+  scanBtn.classList.remove("hidden");
+
+  showStatus("Please scan your face again.");
+
+});
+
+// ======================================
+// INITIAL CHECK
+// ======================================
+
+if (
+  !navigator.mediaDevices ||
+  !navigator.mediaDevices.getUserMedia
+) {
+  showStatus(
+    "Camera requires HTTPS and browser permission.",
+    "error"
+  );
+}
 
 </script>
+
 </body>
 </html>

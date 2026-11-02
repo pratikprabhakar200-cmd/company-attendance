@@ -5,125 +5,75 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Company Attendance</title>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-
 <style>
 *{box-sizing:border-box}
 body{
-  margin:0;
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#edf2f7;
-  font-family:Arial,sans-serif;
-  color:#172033;
+  margin:0;background:#f1f5f9;font-family:Arial,sans-serif;
+  display:flex;justify-content:center;align-items:center;
+  min-height:100vh;padding:15px
 }
 .container{
-  width:92%;
-  max-width:420px;
-  background:white;
-  padding:25px;
-  border-radius:18px;
-  box-shadow:0 8px 30px #00000012;
-  text-align:center;
+  width:100%;max-width:390px;background:white;padding:25px;
+  border-radius:20px;text-align:center;
+  box-shadow:0 5px 25px #00000015
 }
-.logo{
-  width:65px;
-  height:65px;
-  border-radius:50%;
-  background:#e0efff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  margin:0 auto 12px;
-  font-size:30px;
-}
-h2{margin:8px 0}
-#camera{
-  width:100%;
-  max-height:300px;
-  object-fit:cover;
-  border-radius:12px;
-  background:#111;
-  margin-top:15px;
+.logo{font-size:42px;margin-bottom:8px}
+h2{margin:5px 0;color:#172554}
+.sub{color:#64748b;font-size:14px}
+video{
+  width:100%;max-height:280px;background:#111;
+  border-radius:14px;margin-top:18px;display:none
 }
 button{
-  width:100%;
-  padding:14px;
-  margin-top:12px;
-  border:0;
-  border-radius:9px;
-  background:#1769aa;
-  color:white;
-  font-size:16px;
-  font-weight:bold;
-  cursor:pointer;
+  width:100%;padding:15px;border:0;border-radius:10px;
+  background:#2563eb;color:white;font-size:16px;
+  font-weight:bold;margin-top:14px;cursor:pointer
 }
 button:disabled{opacity:.5;cursor:not-allowed}
-.green{background:#15803d}
-.red{background:#dc2626}
-.hidden{display:none!important}
-#message{
-  margin-top:15px;
-  line-height:1.5;
-  font-size:14px;
+#punchBtn{background:#16a34a;display:none}
+#rescanBtn{background:#475569;display:none}
+.status{
+  margin-top:16px;padding:12px;border-radius:10px;
+  background:#f1f5f9;color:#334155;font-size:14px
 }
-.employee{
-  background:#eff6ff;
-  padding:14px;
-  border-radius:10px;
-  margin-top:15px;
-  text-align:left;
-  line-height:1.8;
-}
-.small{font-size:12px;color:#64748b}
+.employee{display:none;margin-top:15px}
+#message{white-space:pre-wrap}
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
-<div class="logo">👤</div>
-<h2>Company Attendance</h2>
-<p class="small">Face Recognition Attendance System</p>
+  <div class="logo">👤</div>
+  <h2>Company Attendance</h2>
+  <p class="sub">Face Recognition Attendance System</p>
 
-<video id="camera" autoplay muted playsinline class="hidden"></video>
+  <video id="video" autoplay muted playsinline></video>
 
-<button id="scanButton" onclick="startScan()">
-  Start Face Scan
-</button>
+  <button id="startBtn">Start Face Scan</button>
+  <button id="identifyBtn" style="display:none">Identify My Face</button>
 
-<button id="identifyButton" onclick="identifyFace()" class="hidden">
-  Identify My Face
-</button>
+  <div class="employee" id="employeeBox">
+    <h3 id="employeeName"></h3>
+    <p id="employeeId"></p>
+    <button id="punchBtn"></button>
+    <button id="rescanBtn">Scan Again</button>
+  </div>
 
-<div id="employeeBox" class="employee hidden">
-  <b>Employee Name:</b>
-  <span id="employeeName"></span><br>
-
-  <b>Employee ID:</b>
-  <span id="employeeId"></span><br>
-
-  <b>Attendance:</b>
-  <span id="attendanceState"></span>
-</div>
-
-<button id="punchButton" class="hidden" onclick="punchAttendance()">
-  Punch IN
-</button>
-
-<button id="rescanButton" class="red hidden" onclick="resetScan()">
-  Rescan Face
-</button>
-
-<div id="message"></div>
+  <div class="status" id="message">Please start face scan.</div>
 
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getAuth,
+  signInAnonymously
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+/* FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyCf8VATHo9dmDav73IX1i_WWuBprrj7Zg",
   authDomain: "company-attendance-8bbb1.firebaseapp.com",
@@ -135,331 +85,264 @@ const firebaseConfig = {
   measurementId: "G-BHG5DXXTFF"
 };
 
-firebase.initializeApp(firebaseConfig);
-
-const auth = firebase.auth();
-
+/* CLOUDFLARE WORKER */
 const WORKER_URL =
 "https://morning-boat-14f9.pratikprabhakar200.workers.dev";
 
-let cameraStream = null;
-let faceModelsLoaded = false;
-let currentEmployee = null;
-let currentDescriptor = null;
-let busy = false;
+/* FACE MODEL */
+const MODEL_URL =
+"https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/model/";
 
-const camera = document.getElementById("camera");
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-function message(text,color="#334155"){
-  const el = document.getElementById("message");
-  el.textContent = text;
-  el.style.color = color;
+const video = document.getElementById("video");
+const startBtn = document.getElementById("startBtn");
+const identifyBtn = document.getElementById("identifyBtn");
+const punchBtn = document.getElementById("punchBtn");
+const rescanBtn = document.getElementById("rescanBtn");
+const message = document.getElementById("message");
+const employeeBox = document.getElementById("employeeBox");
+
+let stream = null;
+let descriptor = null;
+let employee = null;
+let currentlyPunchedIn = false;
+let modelsLoaded = false;
+
+function showMessage(text){
+  message.textContent = text;
 }
 
-function show(id){
-  document.getElementById(id).classList.remove("hidden");
+async function loadModels(){
+  if(modelsLoaded) return;
+
+  showMessage("Loading face recognition models...");
+
+  await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+  await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+  await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+
+  modelsLoaded = true;
 }
 
-function hide(id){
-  document.getElementById(id).classList.add("hidden");
+async function getToken(){
+  if(!auth.currentUser){
+    await signInAnonymously(auth);
+  }
+  return await auth.currentUser.getIdToken(true);
 }
 
-async function ensureLogin(){
-  if(auth.currentUser) return auth.currentUser;
+async function apiRequest(path, body){
+  const token = await getToken();
 
-  const result = await auth.signInAnonymously();
-  return result.user;
-}
+  const response = await fetch(WORKER_URL + path,{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":"Bearer " + token
+    },
+    body:JSON.stringify(body)
+  });
 
-async function loadFaceModels(){
-  if(faceModelsLoaded) return;
+  const data = await response.json();
 
-  if(!window.faceapi){
-    await new Promise((resolve,reject)=>{
-      const script = document.createElement("script");
-      script.src =
-      "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.js";
-      script.onload = resolve;
-      script.onerror = reject;
-      document.head.appendChild(script);
-    });
+  if(!response.ok){
+    throw new Error(data.error || data.message || "Server error: " + response.status);
   }
 
-  const modelUrl =
-  "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/model/";
-
-  await faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl);
-  await faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl);
-  await faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl);
-
-  faceModelsLoaded = true;
+  return data;
 }
 
-async function startScan(){
-  if(busy) return;
-  busy = true;
-
+/* START CAMERA */
+startBtn.addEventListener("click", async()=>{
   try{
-    message("Camera शुरू हो रहा है...");
+    startBtn.disabled = true;
+    showMessage("Starting camera...");
 
-    await ensureLogin();
-    await loadFaceModels();
+    await loadModels();
 
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      video:{
-        facingMode:"user",
-        width:640,
-        height:480
-      },
+    stream = await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:"user"},
       audio:false
     });
 
-    camera.srcObject = cameraStream;
+    video.srcObject = stream;
+    video.style.display = "block";
 
-    show("camera");
-    hide("scanButton");
-    show("identifyButton");
+    startBtn.style.display = "none";
+    identifyBtn.style.display = "block";
 
-    message("Camera तैयार है। अब Identify My Face दबाएं।","#15803d");
+    showMessage("Camera started. Look at the camera and identify your face.");
 
   }catch(error){
-    message("Error: "+error.message,"#dc2626");
-  }finally{
-    busy = false;
+    showMessage("Error: " + error.message);
+    startBtn.disabled = false;
   }
-}
+});
 
-async function identifyFace(){
-  if(busy) return;
-  busy = true;
-
+/* IDENTIFY FACE */
+identifyBtn.addEventListener("click", async()=>{
   try{
-    if(!cameraStream || camera.readyState < 2){
-      throw new Error("पहले Camera शुरू करें");
-    }
-
-    message("Face पहचान रहे हैं...");
+    identifyBtn.disabled = true;
+    showMessage("Checking your face...");
 
     const result = await faceapi
       .detectSingleFace(
-        camera,
+        video,
         new faceapi.TinyFaceDetectorOptions()
       )
       .withFaceLandmarks()
       .withFaceDescriptor();
 
     if(!result){
-      throw new Error("Face नहीं मिला। Camera के सामने सीधे देखें।");
+      throw new Error("Face not detected. Please look directly at the camera.");
     }
 
-    currentDescriptor = Array.from(result.descriptor);
+    descriptor = Array.from(result.descriptor);
 
-    const user = await ensureLogin();
-    const token = await user.getIdToken(true);
+    const data = await apiRequest("/face-identify",{
+      descriptor:descriptor
+    });
 
-    const response = await fetch(
-      WORKER_URL+"/face-identify",
-      {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "Authorization":"Bearer "+token
-        },
-        body:JSON.stringify({
-          descriptor:currentDescriptor
-        })
-      }
-    );
-
-    const data = await response.json();
-
-    if(!response.ok || !data.success){
-      throw new Error(data.message || "Face पहचान नहीं हुई");
+    if(!data.success || !data.employee){
+      throw new Error(data.error || "Employee not recognized.");
     }
 
-    currentEmployee = {
-      employeeId:data.employeeId,
-      employeeName:data.employeeName,
-      currentlyPunchedIn:data.currentlyPunchedIn
-    };
+    employee = data.employee;
+    currentlyPunchedIn = Boolean(data.currentlyPunchedIn);
 
     document.getElementById("employeeName").textContent =
-      currentEmployee.employeeName;
+      employee.name || "Employee";
 
     document.getElementById("employeeId").textContent =
-      currentEmployee.employeeId;
+      "Employee ID: " + employee.employeeId;
 
-    updatePunchButton();
+    employeeBox.style.display = "block";
+    identifyBtn.style.display = "none";
 
-    show("employeeBox");
-    show("punchButton");
-    show("rescanButton");
-    hide("identifyButton");
+    punchBtn.style.display = "block";
+    punchBtn.textContent = currentlyPunchedIn ? "PUNCH OUT" : "PUNCH IN";
 
-    message("Face पहचान सफल हुई।","#15803d");
+    showMessage("Face identified successfully.");
 
   }catch(error){
-    currentDescriptor = null;
-    currentEmployee = null;
-    message(error.message,"#dc2626");
-  }finally{
-    busy = false;
+    showMessage("Error: " + error.message);
+    identifyBtn.disabled = false;
   }
-}
+});
 
-function updatePunchButton(){
-  const button = document.getElementById("punchButton");
-  const state = document.getElementById("attendanceState");
-
-  if(currentEmployee.currentlyPunchedIn){
-    button.textContent = "Punch OUT";
-    button.className = "red";
-    state.textContent = "Punched IN";
-  }else{
-    button.textContent = "Punch IN";
-    button.className = "green";
-    state.textContent = "Not Punched IN";
-  }
-}
-
-async function getGPS(){
+/* GPS */
+function getLocation(){
   return new Promise((resolve,reject)=>{
     if(!navigator.geolocation){
-      reject(new Error("GPS इस फोन में उपलब्ध नहीं है"));
+      reject(new Error("GPS is not supported by this phone."));
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
       position=>{
+        if(position.coords.accuracy > 100){
+          reject(new Error("GPS accuracy is weak. Please try again outside."));
+          return;
+        }
+
         resolve({
           latitude:position.coords.latitude,
           longitude:position.coords.longitude,
           accuracy:position.coords.accuracy
         });
       },
-      error=>{
-        reject(new Error(
-          "GPS location नहीं मिली। Location permission चालू करें।"
-        ));
-      },
-      {
-        enableHighAccuracy:true,
-        timeout:20000,
-        maximumAge:0
-      }
+      error=>reject(new Error("GPS error: " + error.message)),
+      {enableHighAccuracy:true,timeout:20000,maximumAge:0}
     );
   });
 }
 
-async function punchAttendance(){
-  if(busy) return;
-
-  if(!currentEmployee || !currentDescriptor){
-    message("पहले Face पहचानें","#dc2626");
-    return;
-  }
-
-  busy = true;
-
-  const button = document.getElementById("punchButton");
-  button.disabled = true;
-
+/* PUNCH IN / OUT */
+punchBtn.addEventListener("click", async()=>{
   try{
-    const action =
-      currentEmployee.currentlyPunchedIn ? "OUT" : "IN";
+    punchBtn.disabled = true;
 
-    message("GPS location जाँची जा रही है...");
+    const action = currentlyPunchedIn ? "OUT" : "IN";
 
-    const gps = await getGPS();
+    showMessage("Checking GPS location...");
 
-    if(gps.accuracy > 100){
-      throw new Error(
-        "GPS accuracy कम है। खुले स्थान पर जाकर दोबारा कोशिश करें।"
-      );
+    const location = await getLocation();
+
+    showMessage("Submitting attendance...");
+
+    const data = await apiRequest("/face-punch",{
+      action:action,
+      descriptor:descriptor,
+      latitude:location.latitude,
+      longitude:location.longitude,
+      accuracy:location.accuracy
+    });
+
+    if(!data.success){
+      throw new Error(data.error || "Attendance failed.");
     }
 
-    const user = await ensureLogin();
-    const token = await user.getIdToken(true);
+    currentlyPunchedIn = action === "IN";
 
-    message("Attendance save हो रही है...");
+    punchBtn.textContent = currentlyPunchedIn ? "PUNCH OUT" : "PUNCH IN";
 
-    const response = await fetch(
-      WORKER_URL+"/face-punch",
-      {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "Authorization":"Bearer "+token
-        },
-        body:JSON.stringify({
-          action,
-          descriptor:currentDescriptor,
-          latitude:gps.latitude,
-          longitude:gps.longitude
-        })
-      }
-    );
+    let resultText = action === "IN"
+      ? "Punch IN successful!"
+      : "Punch OUT successful!";
 
-    const data = await response.json();
-
-    if(!response.ok || !data.success){
-      throw new Error(data.message || "Attendance save नहीं हुई");
+    if(data.time){
+      resultText += "\nTime: " + data.time;
     }
 
-    currentEmployee.currentlyPunchedIn = action === "IN";
-
-    updatePunchButton();
-
-    const summary = data.summary || {};
-
-    let resultText =
-      `सफलता! Punch ${action} दर्ज हो गया। `+
-      `समय: ${data.time}`;
-
-    if(action === "OUT"){
-      resultText +=
-        ` | Work Hours: ${summary.completedWorkHours ?? 0}`+
-        ` | OT Hours: ${summary.overtimeHours ?? 0}`;
+    if(data.workHours !== undefined){
+      resultText += "\nWork Hours: " + data.workHours;
     }
 
-    message(resultText,"#15803d");
+    if(data.otHours !== undefined){
+      resultText += "\nOT Hours: " + data.otHours;
+    }
+
+    showMessage(resultText);
 
   }catch(error){
-    message(error.message,"#dc2626");
+    showMessage("Error: " + error.message);
   }finally{
-    busy = false;
-    button.disabled = false;
-  }
-}
-
-function resetScan(){
-  currentEmployee = null;
-  currentDescriptor = null;
-
-  if(cameraStream){
-    cameraStream.getTracks().forEach(track=>track.stop());
-    cameraStream = null;
-  }
-
-  camera.srcObject = null;
-
-  hide("camera");
-  hide("identifyButton");
-  hide("employeeBox");
-  hide("punchButton");
-  hide("rescanButton");
-
-  show("scanButton");
-
-  message("दोबारा Face Scan करने के लिए Start Face Scan दबाएं।");
-}
-
-window.addEventListener("beforeunload",()=>{
-  if(cameraStream){
-    cameraStream.getTracks().forEach(track=>track.stop());
+    punchBtn.disabled = false;
   }
 });
+
+/* RESCAN */
+rescanBtn.addEventListener("click",()=>{
+  employee = null;
+  descriptor = null;
+  currentlyPunchedIn = false;
+
+  if(stream){
+    stream.getTracks().forEach(track=>track.stop());
+    stream = null;
+  }
+
+  video.srcObject = null;
+  video.style.display = "none";
+
+  employeeBox.style.display = "none";
+  punchBtn.style.display = "none";
+  rescanBtn.style.display = "none";
+
+  identifyBtn.style.display = "none";
+  identifyBtn.disabled = false;
+
+  startBtn.style.display = "block";
+  startBtn.disabled = false;
+
+  showMessage("Please start face scan again.");
+});
+
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.js"></script>
 
 </body>
 </html>

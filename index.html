@@ -12,24 +12,24 @@ body{margin:0;background:#f1f5f9;padding:20px;color:#172554}
 .container{max-width:950px;margin:auto;background:white;padding:24px;border-radius:15px;box-shadow:0 5px 25px #0001}
 h2{text-align:center}
 .subtitle{text-align:center;color:#64748b}
-input{width:100%;padding:12px;margin:7px 0 14px;border:1px solid #cbd5e1;border-radius:8px}
+input,select{width:100%;padding:12px;margin:7px 0 14px;border:1px solid #cbd5e1;border-radius:8px}
 label{font-weight:bold;font-size:14px}
 button{padding:11px 16px;border:0;border-radius:8px;background:#2563eb;color:white;cursor:pointer;margin:5px}
 button:hover{opacity:.9}
-.logout{background:#dc2626}
+button:disabled{opacity:.5;cursor:not-allowed}
+.logout,.red{background:#dc2626}
 .green{background:#16a34a}
-.red{background:#dc2626}
 .card{border:1px solid #e2e8f0;padding:18px;border-radius:12px;margin-top:18px}
 .hidden{display:none}
 #message{color:#dc2626;text-align:center;overflow-wrap:anywhere}
 #employeeList{margin-top:15px}
 .employee{border:1px solid #e2e8f0;padding:14px;border-radius:9px;margin-top:10px}
-.employee img{width:75px;height:75px;object-fit:cover;border-radius:50%}
 .employee-row{display:flex;gap:15px;align-items:center;flex-wrap:wrap}
 .status{font-weight:bold}
 video,canvas{width:100%;max-width:320px;border-radius:10px;background:#111}
 #preview{width:110px;height:110px;object-fit:cover;border-radius:50%}
 .small{font-size:12px;color:#64748b}
+#saveMessage,#testPunchMessage{overflow-wrap:anywhere}
 </style>
 </head>
 
@@ -82,10 +82,27 @@ video,canvas{width:100%;max-width:320px;border-radius:10px;background:#111}
 <button type="button" id="captureBtn" class="green hidden">CAPTURE PHOTO</button>
 <button type="button" id="retakeBtn" class="hidden">RETAKE PHOTO</button>
 
-<p class="small">अभी फोटो केवल इस स्क्रीन पर preview होगी। असली Face Recognition अगले चरण में जोड़ा जाएगा।</p>
+<p class="small">फोटो अभी केवल स्क्रीन पर preview होगी। Face Recognition अभी सक्रिय नहीं है।</p>
 
 <button type="button" id="saveBtn" class="green">SAVE EMPLOYEE</button>
 <p id="saveMessage"></p>
+</div>
+
+<div class="card">
+<h3>ADMIN TEST PUNCH</h3>
+<p class="small">यह केवल Admin द्वारा API और GPS की जाँच के लिए है।</p>
+
+<label>Employee ID</label>
+<input id="testEmployeeId" value="PK-8501">
+
+<label>Attendance Action</label>
+<select id="testAction">
+<option value="IN">PUNCH IN</option>
+<option value="OUT">PUNCH OUT</option>
+</select>
+
+<button type="button" id="testPunchBtn" class="green">TEST ATTENDANCE</button>
+<p id="testPunchMessage"></p>
 </div>
 
 <div class="card">
@@ -107,7 +124,7 @@ import {
 "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
- getDatabase, ref, get, set, update, runTransaction, onValue
+ getDatabase, ref, set, update, runTransaction, onValue, get
 } from
 "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
@@ -123,6 +140,7 @@ const firebaseConfig = {
 };
 
 const ADMIN_UID = "83VXGyZpVkU9pTkWP4tPxSYt9OU2";
+const WORKER_URL = "https://morning-boat-14f9.pratikprabhakar200.workers.dev";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -134,16 +152,22 @@ const message = document.getElementById("message");
 
 let cameraStream = null;
 let photoCaptured = false;
+let employeesListenerStarted = false;
 
 onAuthStateChanged(auth, user => {
  if(user && user.uid === ADMIN_UID){
    loginBox.classList.add("hidden");
    dashboard.classList.remove("hidden");
    document.getElementById("adminEmail").textContent = user.email;
-   loadEmployees();
+
+   if(!employeesListenerStarted){
+     loadEmployees();
+     employeesListenerStarted = true;
+   }
  } else {
    dashboard.classList.add("hidden");
    loginBox.classList.remove("hidden");
+
    if(user){
      signOut(auth);
      message.textContent = "Unauthorized Admin Account";
@@ -153,16 +177,19 @@ onAuthStateChanged(auth, user => {
 
 document.getElementById("loginForm").addEventListener("submit",async e=>{
  e.preventDefault();
+
  const btn=document.getElementById("loginBtn");
  btn.disabled=true;
  btn.textContent="PLEASE WAIT...";
  message.textContent="";
+
  try{
    const result=await signInWithEmailAndPassword(
      auth,
      document.getElementById("email").value.trim(),
      document.getElementById("password").value
    );
+
    if(result.user.uid !== ADMIN_UID){
      await signOut(auth);
      message.textContent="This account is not authorized as Admin.";
@@ -182,6 +209,7 @@ async function openCamera(){
    cameraStream=await navigator.mediaDevices.getUserMedia({
      video:{facingMode:"user"},audio:false
    });
+
    const video=document.getElementById("camera");
    video.srcObject=cameraStream;
    video.classList.remove("hidden");
@@ -204,19 +232,24 @@ document.getElementById("cameraBtn").onclick=openCamera;
 document.getElementById("captureBtn").onclick=()=>{
  const video=document.getElementById("camera");
  const canvas=document.getElementById("canvas");
+
  if(!video.videoWidth){
    alert("Camera abhi ready nahi hai.");
    return;
  }
+
  canvas.width=video.videoWidth;
  canvas.height=video.videoHeight;
  canvas.getContext("2d").drawImage(video,0,0);
+
  const preview=document.getElementById("preview");
  preview.src=canvas.toDataURL("image/jpeg",0.85);
  preview.classList.remove("hidden");
+
  video.classList.add("hidden");
  document.getElementById("captureBtn").classList.add("hidden");
  document.getElementById("retakeBtn").classList.remove("hidden");
+
  photoCaptured=true;
  stopCamera();
 };
@@ -245,10 +278,12 @@ document.getElementById("saveBtn").onclick=async()=>{
    alert("Employee name enter karein.");
    return;
  }
+
  if(!/^[0-9]{10}$/.test(mobile)){
    alert("Valid 10 digit mobile number enter karein.");
    return;
  }
+
  if(!auth.currentUser || auth.currentUser.uid!==ADMIN_UID){
    alert("Admin login required.");
    return;
@@ -260,6 +295,7 @@ document.getElementById("saveBtn").onclick=async()=>{
  try{
    const counterRef=ref(db,"employees/_meta/lastSerial");
    const transaction=await runTransaction(counterRef,current=>(current||0)+1);
+
    if(!transaction.committed) throw new Error("Employee ID generate nahi hua.");
 
    const serial=transaction.snapshot.val();
@@ -296,11 +332,14 @@ document.getElementById("saveBtn").onclick=async()=>{
 
 function loadEmployees(){
  const list=document.getElementById("employeeList");
+
  onValue(ref(db,"employees"),snapshot=>{
    const data=snapshot.val()||{};
+
    const employees=Object.values(data)
      .filter(item=>item && item.employeeId)
      .sort((a,b)=>a.employeeId.localeCompare(b.employeeId));
+
    renderEmployees(employees);
  },error=>{
    list.textContent="Database error: "+error.message;
@@ -310,9 +349,10 @@ function loadEmployees(){
 function renderEmployees(employees){
  const list=document.getElementById("employeeList");
  const search=document.getElementById("searchEmployee").value.toLowerCase();
+
  const filtered=employees.filter(emp=>
-   emp.name.toLowerCase().includes(search) ||
-   emp.employeeId.toLowerCase().includes(search)
+   (emp.name||"").toLowerCase().includes(search) ||
+   (emp.employeeId||"").toLowerCase().includes(search)
  );
 
  if(!filtered.length){
@@ -321,6 +361,7 @@ function renderEmployees(employees){
  }
 
  list.innerHTML="";
+
  filtered.forEach(emp=>{
    const card=document.createElement("div");
    card.className="employee";
@@ -330,12 +371,16 @@ function renderEmployees(employees){
 
    const details=document.createElement("div");
    details.style.flex="1";
+
    const title=document.createElement("b");
    title.textContent=emp.name;
+
    const id=document.createElement("p");
    id.textContent="ID: "+emp.employeeId;
+
    const phone=document.createElement("p");
    phone.textContent="Mobile: "+emp.mobile;
+
    const status=document.createElement("p");
    status.className="status";
    status.textContent="Status: "+emp.status;
@@ -356,6 +401,8 @@ document.getElementById("searchEmployee").addEventListener("input",()=>{
  get(ref(db,"employees")).then(snapshot=>{
    const data=snapshot.val()||{};
    renderEmployees(Object.values(data).filter(item=>item&&item.employeeId));
+ }).catch(error=>{
+   document.getElementById("employeeList").textContent=error.message;
  });
 });
 
@@ -368,6 +415,95 @@ async function changeStatus(id,status){
    alert("Status update failed: "+error.message);
  }
 }
+
+// ADMIN TEST PUNCH
+document.getElementById("testPunchBtn").onclick=async()=>{
+ const btn=document.getElementById("testPunchBtn");
+ const output=document.getElementById("testPunchMessage");
+ const employeeId=document.getElementById("testEmployeeId").value.trim();
+ const action=document.getElementById("testAction").value;
+
+ if(!auth.currentUser || auth.currentUser.uid!==ADMIN_UID){
+   output.style.color="red";
+   output.textContent="Please login as authorized admin.";
+   return;
+ }
+
+ if(!employeeId){
+   output.style.color="red";
+   output.textContent="Employee ID enter karein.";
+   return;
+ }
+
+ if(!navigator.geolocation){
+   output.style.color="red";
+   output.textContent="This browser does not support GPS.";
+   return;
+ }
+
+ btn.disabled=true;
+ output.style.color="#2563eb";
+ output.textContent="Getting GPS location...";
+
+ try{
+   const position=await new Promise((resolve,reject)=>{
+     navigator.geolocation.getCurrentPosition(resolve,reject,{
+       enableHighAccuracy:true,
+       timeout:20000,
+       maximumAge:0
+     });
+   });
+
+   const latitude=position.coords.latitude;
+   const longitude=position.coords.longitude;
+
+   output.textContent="Checking Admin Token and sending attendance...";
+
+   const idToken=await auth.currentUser.getIdToken(true);
+
+   const response=await fetch(WORKER_URL+"/admin-test-punch",{
+     method:"POST",
+     headers:{
+       "Content-Type":"application/json",
+       "Authorization":"Bearer "+idToken
+     },
+     body:JSON.stringify({
+       employeeId,
+       action,
+       latitude,
+       longitude
+     })
+   });
+
+   const result=await response.json();
+
+   if(!response.ok || !result.success){
+     throw new Error(result.message||result.error||"Attendance request failed. HTTP "+response.status);
+   }
+
+   output.style.color="green";
+   output.textContent=
+     "SUCCESS! "+(result.message||"Attendance recorded.")+
+     " | Employee: "+employeeId+
+     " | Action: "+action+
+     " | GPS distance: "+(result.distanceMeters??result.distance??"Server checked")+" metres";
+
+ }catch(error){
+   output.style.color="red";
+
+   if(error.code===1){
+     output.textContent="GPS permission denied. Browser location permission Allow karein.";
+   }else if(error.code===2){
+     output.textContent="GPS location unavailable. Location ON karke dobara try karein.";
+   }else if(error.code===3){
+     output.textContent="GPS timeout. Dobara try karein.";
+   }else{
+     output.textContent="TEST FAILED: "+error.message;
+   }
+ }finally{
+   btn.disabled=false;
+ }
+};
 </script>
 </body>
 </html>

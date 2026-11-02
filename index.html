@@ -82,7 +82,7 @@ video,canvas{width:100%;max-width:320px;border-radius:10px;background:#111}
 <button type="button" id="captureBtn" class="green hidden">CAPTURE PHOTO</button>
 <button type="button" id="retakeBtn" class="hidden">RETAKE PHOTO</button>
 
-<p class="small">फोटो अभी केवल स्क्रीन पर preview होगी। Face Recognition अभी सक्रिय नहीं है।</p>
+<p class="small">फोटो अभी केवल स्क्रीन पर preview होगी। Face Recognition और Liveness Detection अभी सक्रिय नहीं हैं।</p>
 
 <button type="button" id="saveBtn" class="green">SAVE EMPLOYEE</button>
 <p id="saveMessage"></p>
@@ -93,7 +93,7 @@ video,canvas{width:100%;max-width:320px;border-radius:10px;background:#111}
 <p class="small">यह केवल Admin द्वारा API और GPS की जाँच के लिए है।</p>
 
 <label>Employee ID</label>
-<input id="testEmployeeId" value="PK-8501">
+<input id="testEmployeeId" value="AH-8502">
 
 <label>Attendance Action</label>
 <select id="testAction">
@@ -110,6 +110,7 @@ video,canvas{width:100%;max-width:320px;border-radius:10px;background:#111}
 <input id="searchEmployee" placeholder="Search by name or Employee ID">
 <div id="employeeList">Loading employees...</div>
 </div>
+
 </div>
 </div>
 
@@ -478,7 +479,10 @@ document.getElementById("testPunchBtn").onclick=async()=>{
    const result=await response.json();
 
    if(!response.ok || !result.success){
-     throw new Error(result.message||result.error||"Attendance request failed. HTTP "+response.status);
+     const diagnostic = result.diagnostic
+       ? " | Diagnostic: "+JSON.stringify(result.diagnostic)
+       : "";
+     throw new Error((result.message||result.error||"Attendance request failed. HTTP "+response.status)+diagnostic);
    }
 
    output.style.color="green";

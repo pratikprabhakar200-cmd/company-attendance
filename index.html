@@ -1,153 +1,477 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Company Attendance Admin</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f1f5f9;font-family:Arial,sans-serif;color:#172033}
-header{background:#172554;color:#fff;padding:18px 22px}header h2{margin:0}
-main{max-width:1100px;margin:22px auto;padding:0 14px}.panel{background:#fff;border-radius:14px;padding:18px;margin:14px 0;box-shadow:0 3px 15px #0f172a10}
+*{box-sizing:border-box}
+body{margin:0;background:#f1f5f9;font-family:Arial,sans-serif;color:#172033}
+header{background:#172554;color:white;padding:18px 22px}
+header h2{margin:0}
+main{max-width:1100px;margin:22px auto;padding:0 14px}
+.panel{background:white;border-radius:14px;padding:18px;margin:14px 0;box-shadow:0 3px 15px #0f172a10}
 input,select{padding:11px;border:1px solid #cbd5e1;border-radius:8px;margin:5px;max-width:100%}
-button{padding:11px 15px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-weight:700;cursor:pointer;margin:5px}
-button.danger{background:#dc2626}button.gray{background:#475569}
-.hidden{display:none}.grid{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left}
+button{padding:11px 15px;border:0;border-radius:8px;background:#2563eb;color:white;font-weight:700;cursor:pointer;margin:5px}
+button:disabled{opacity:.5}
+button.danger{background:#dc2626}
+button.gray{background:#475569}
+.hidden{display:none!important}
+.grid{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left}
 video{width:280px;max-width:100%;display:none;border-radius:10px;background:#111}
 #notice{white-space:pre-line;padding:12px;background:#eff6ff;border-radius:8px;margin-top:10px}
 .small{color:#64748b;font-size:13px}
-</style></head>
+</style>
+</head>
 <body>
+
 <header><h2>Company Attendance – Admin Panel</h2></header>
+
 <main>
 <section class="panel" id="loginPanel">
- <h3>Admin Login</h3>
- <input id="email" type="email" placeholder="Admin email">
- <input id="password" type="password" placeholder="Password">
- <button id="login">Login</button><div id="loginMsg" class="small"></div>
+<h3>Admin Login</h3>
+<input id="email" type="email" placeholder="Admin email">
+<input id="password" type="password" placeholder="Password">
+<button id="login" type="button">Login</button>
+<div id="loginMsg" class="small"></div>
 </section>
+
 <div id="dashboard" class="hidden">
- <section class="panel">
-  <div class="grid"><h3>Employee Registration</h3><button class="gray" id="logout">Logout</button></div>
-  <div class="grid"><input id="name" placeholder="Employee full name"><input id="phone" placeholder="Phone (optional)"><button id="add">Register Employee</button></div>
-  <p class="small">Employee ID is generated automatically from first/last name and plot number 85.</p>
-  <div id="newEmployee"></div>
- </section>
- <section class="panel">
-  <h3>Register Employee Face</h3>
-  <div class="grid"><select id="faceEmployee"><option value="">Select employee</option></select><button id="camera">Start Camera</button><button id="capture">Capture Face</button><button id="saveFace">Save 3 Face Captures</button></div>
-  <video id="video" autoplay muted playsinline></video><p id="captureCount">Captured: 0 / 3</p>
-  <p class="small">Take three clear captures: front, slight left, slight right. Only face descriptors are saved; photos are not uploaded.</p>
- </section>
- <section class="panel">
-  <h3>Employee List</h3><button id="refresh">Refresh Employees</button>
-  <div style="overflow-x:auto"><table><thead><tr><th>ID</th><th>Name</th><th>Status</th><th>Face</th><th>Action</th></tr></thead><tbody id="employees"></tbody></table></div>
- </section>
- <section class="panel">
-  <h3>Daily Attendance</h3><input type="date" id="reportDate"><button id="daily">Load Daily Report</button>
-  <div style="overflow-x:auto"><table><thead><tr><th>Employee</th><th>Status</th><th>IN</th><th>OUT</th><th>Work</th><th>OT</th></tr></thead><tbody id="dailyRows"></tbody></table></div>
- </section>
- <section class="panel">
-  <h3>Monthly Attendance</h3><select id="month"></select><button id="monthly">Load Monthly Report</button>
-  <div id="monthlyResult"></div>
- </section>
+
+<section class="panel">
+<div class="grid">
+<h3>Employee Registration</h3>
+<button class="gray" id="logout" type="button">Logout</button>
 </div>
+<div class="grid">
+<input id="name" placeholder="Employee full name">
+<input id="phone" placeholder="Phone (optional)">
+<button id="add" type="button">Register Employee</button>
+</div>
+<p class="small">Employee ID automatically generated using name initials and plot number 85.</p>
+<div id="newEmployee"></div>
+</section>
+
+<section class="panel">
+<h3>Register Employee Face</h3>
+<div class="grid">
+<select id="faceEmployee"><option value="">Select employee</option></select>
+<button id="camera" type="button">Start Camera</button>
+<button id="capture" type="button">Capture Face</button>
+<button id="saveFace" type="button">Save 3 Face Captures</button>
+<button id="stopCamera" class="gray" type="button">Stop Camera</button>
+</div>
+<video id="video" autoplay muted playsinline></video>
+<p id="captureCount">Captured: 0 / 3</p>
+<p class="small">Capture front, slight left and slight right. Only face descriptors are sent for registration, not raw photos.</p>
+</section>
+
+<section class="panel">
+<h3>Employee List</h3>
+<button id="refresh" type="button">Refresh Employees</button>
+<div style="overflow-x:auto">
+<table>
+<thead>
+<tr><th>ID</th><th>Name</th><th>Status</th><th>Face</th><th>Action</th></tr>
+</thead>
+<tbody id="employees"></tbody>
+</table>
+</div>
+</section>
+
+<section class="panel">
+<h3>Daily Attendance</h3>
+<input type="date" id="reportDate">
+<button id="daily" type="button">Load Daily Report</button>
+<div style="overflow-x:auto">
+<table>
+<thead>
+<tr><th>Employee</th><th>Status</th><th>IN</th><th>OUT</th><th>Work</th><th>OT</th></tr>
+</thead>
+<tbody id="dailyRows"></tbody>
+</table>
+</div>
+</section>
+
+<section class="panel">
+<h3>Monthly Attendance</h3>
+<select id="month"></select>
+<button id="monthly" type="button">Load Monthly Report</button>
+<div id="monthlyResult"></div>
+</section>
+
+</div>
+
 <div id="notice">Sign in with the administrator account.</div>
 </main>
+
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.js"></script>
+
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getDatabase,ref,get,set,remove,update} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
 const firebaseConfig={
- apiKey:"AIzaSyAtQDdI2P9MgeTAEWKpdEgsS6KCNO1fXnw",
- authDomain:"company-attendance-8bbb1.firebaseapp.com",
- databaseURL:"https://company-attendance-8bbb1-default-rtdb.asia-southeast1.firebasedatabase.app",
- projectId:"company-attendance-8bbb1",
- storageBucket:"company-attendance-8bbb1.firebasestorage.app",
- messagingSenderId:"528681450890",
- appId:"1:528681450890:web:65c943b5b8e72557de5c73",
- measurementId:"G-KYSG7CD4W3"
+apiKey:"AIzaSyAtQDdI2P9MgeTAEWKpdEgsS6KCNO1fXnw",
+authDomain:"company-attendance-8bbb1.firebaseapp.com",
+databaseURL:"https://company-attendance-8bbb1-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId:"company-attendance-8bbb1",
+storageBucket:"company-attendance-8bbb1.firebasestorage.app",
+messagingSenderId:"528681450890",
+appId:"1:528681450890:web:65c943b5b8e72557de5c73",
+measurementId:"G-KYSG7CD4W3"
 };
+
+const ADMIN_UID="83VXGyZpVkU9pTkWP4tPxSYt9OU2";
 const WORKER="https://morning-boat-14f9.pratikprabhakar200.workers.dev";
 const MODEL="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/model/";
-const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app);
-const $=id=>document.getElementById(id);let employees={},stream=null,captures=[],modelsReady=false;
-function note(t){$("notice").textContent=t}
-const today=new Date();$("reportDate").value=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
-for(let i=0;i<12;i++){let d=new Date(today.getFullYear(),today.getMonth()-i,1);let o=document.createElement("option");o.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;o.textContent=d.toLocaleString("en-IN",{month:"long",year:"numeric"});$("month").append(o)}
-async function token(){return auth.currentUser.getIdToken(true)}
-async function worker(path,body){let t=await token();let r=await fetch(WORKER+path,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+t},body:JSON.stringify(body)});let d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||d.message||`Worker error ${r.status}`);return d}
-$("login").onclick=async()=>{try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);$("loginMsg").textContent="Login successful"}catch(e){$("loginMsg").textContent=e.message}};
-$("logout").onclick=()=>signOut(auth);
-onAuthStateChanged(auth,u=>{let ok=!!u&&u.uid==="83VXGyZpVkU9pTkWP4tPxSYt9OU2";$("loginPanel").classList.toggle("hidden",ok);$("dashboard").classList.toggle("hidden",!ok);if(ok)refresh()});
+
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getDatabase(app);
+const $=id=>document.getElementById(id);
+
+let employees={};
+let stream=null;
+let captures=[];
+let modelsReady=false;
+
+function note(message){
+$("notice").textContent=message;
+}
+
+function escapeHtml(value){
+return String(value??"").replace(/[&<>"']/g,c=>({
+"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+})[c]);
+}
+
+function formatMinutes(value){
+if(value==null)return "—";
+return Math.floor(value/60)+"h "+(value%60)+"m";
+}
+
+async function token(){
+if(!auth.currentUser)throw Error("Please login again.");
+return auth.currentUser.getIdToken(true);
+}
+
+async function worker(path,body){
+const t=await token();
+const response=await fetch(WORKER+path,{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization":"Bearer "+t
+},
+body:JSON.stringify(body)
+});
+const data=await response.json().catch(()=>({}));
+if(!response.ok)throw Error(data.error||data.message||"Worker error "+response.status);
+return data;
+}
+
+// Date defaults
+const today=new Date();
+$("reportDate").value=
+`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+
+for(let i=0;i<12;i++){
+let d=new Date(today.getFullYear(),today.getMonth()-i,1);
+let option=document.createElement("option");
+option.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+option.textContent=d.toLocaleString("en-IN",{month:"long",year:"numeric"});
+$("month").append(option);
+}
+
+// LOGIN
+$("login").onclick=async()=>{
+$("login").disabled=true;
+$("loginMsg").textContent="Logging in...";
+try{
+await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);
+$("loginMsg").textContent="Login successful";
+}catch(e){
+$("loginMsg").textContent=e.message;
+}finally{
+$("login").disabled=false;
+}
+};
+
+$("logout").onclick=async()=>{
+await stopCamera();
+await signOut(auth);
+note("Logged out.");
+};
+
+onAuthStateChanged(auth,async user=>{
+const isAdmin=!!user&&user.uid===ADMIN_UID;
+$("loginPanel").classList.toggle("hidden",isAdmin);
+$("dashboard").classList.toggle("hidden",!isAdmin);
+
+if(user&&!isAdmin){
+await signOut(auth);
+$("loginMsg").textContent="This account is not authorized as admin.";
+note("Admin access denied.");
+return;
+}
+if(isAdmin)await refresh();
+});
+
+// LOAD EMPLOYEES
 async function refresh(){
- try{let s=await get(ref(db,"employees"));employees=s.val()||{};render();note("Employees loaded.");}
- catch(e){note("Database error: "+e.message)}
+try{
+const snapshot=await get(ref(db,"employees"));
+employees=snapshot.val()||{};
+render();
+note("Employees loaded.");
+}catch(e){
+note("Database error: "+e.message);
 }
+}
+
 function render(){
- $("employees").innerHTML="";$("faceEmployee").innerHTML='<option value="">Select employee</option>';
- Object.entries(employees).forEach(([id,e])=>{
-  let op=document.createElement("option");op.value=id;op.textContent=`${id} - ${e.name}`;$("faceEmployee").append(op);
-  let tr=document.createElement("tr");tr.innerHTML=`<td>${id}</td><td>${escapeHtml(e.name||"")}</td><td>${e.status||"Active"}</td><td>${e.faceRegistered?"Registered":"Pending"}</td><td><button class="gray" data-toggle="${id}">${e.status==="Inactive"?"Activate":"Deactivate"}</button><button class="danger" data-delete="${id}">Delete</button></td>`;$("employees").append(tr);
- });
+$("employees").innerHTML="";
+$("faceEmployee").innerHTML='<option value="">Select employee</option>';
+
+Object.entries(employees).forEach(([id,e])=>{
+let option=document.createElement("option");
+option.value=id;
+option.textContent=id+" - "+(e.name||"");
+$("faceEmployee").append(option);
+
+let row=document.createElement("tr");
+row.innerHTML=`
+<td>${escapeHtml(id)}</td>
+<td>${escapeHtml(e.name||"")}</td>
+<td>${escapeHtml(e.status||"Active")}</td>
+<td>${e.faceRegistered?"Registered":"Pending"}</td>
+<td>
+<button class="gray" data-toggle="${escapeHtml(id)}" type="button">${e.status==="Inactive"?"Activate":"Deactivate"}</button>
+<button class="danger" data-delete="${escapeHtml(id)}" type="button">Delete</button>
+</td>`;
+$("employees").append(row);
+});
 }
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
 $("refresh").onclick=refresh;
+
+// REGISTER EMPLOYEE
 $("add").onclick=async()=>{
- try{
-  let name=$("name").value.trim();if(!name)throw Error("Enter employee name");
-  let first=name.trim().split(/\s+/)[0],last=name.trim().split(/\s+/).slice(-1)[0];
-  let initials=(first[0]+last.slice(-1)).toUpperCase();
-  let snap=await get(ref(db,"employeeSerial"));let serial=(Number(snap.val())||0)+1;
-  let id=`${initials}-85${String(serial).padStart(2,"0")}`;
-  await set(ref(db,"employeeSerial"),serial);
-  await set(ref(db,"employees/"+id),{employeeId:id,name,phone:$("phone").value.trim(),status:"Active",faceRegistered:false,createdAt:Date.now()});
-  $("name").value="";$("phone").value="";$("newEmployee").textContent="Registered: "+id+" — "+name;await refresh();
- }catch(e){note("Registration error: "+e.message)}
+$("add").disabled=true;
+try{
+let name=$("name").value.trim();
+if(!name)throw Error("Enter employee name");
+
+let phone=$("phone").value.trim();
+let parts=name.split(/\s+/);
+let initials=(parts[0][0]+parts[parts.length-1].slice(-1)).toUpperCase();
+
+// Generate serial from existing employee IDs.
+// No separate employeeSerial database permission is required.
+let serials=Object.keys(employees).map(id=>{
+let match=id.match(/-85(\d+)$/);
+return match?Number(match[1]):0;
+});
+
+let serial=Math.max(0,...serials)+1;
+let id=`${initials}-85${String(serial).padStart(2,"0")}`;
+
+await set(ref(db,"employees/"+id),{
+employeeId:id,
+name:name,
+phone:phone,
+status:"Active",
+faceRegistered:false,
+createdAt:Date.now()
+});
+
+$("name").value="";
+$("phone").value="";
+$("newEmployee").textContent="Registered: "+id+" — "+name;
+await refresh();
+note("Employee registered successfully: "+id);
+
+}catch(e){
+note("Registration error: "+e.message);
+}finally{
+$("add").disabled=false;
+}
 };
-$("employees").onclick=async ev=>{
- let id=ev.target.dataset.toggle||ev.target.dataset.delete;if(!id)return;
- try{
-  if(ev.target.dataset.toggle){let status=employees[id].status==="Inactive"?"Active":"Inactive";await update(ref(db,"employees/"+id),{status});}
-  else if(confirm(`Permanently delete ${id}, its face data and attendance?`)){await remove(ref(db,"employees/"+id));await remove(ref(db,"attendance/"+id));}
-  await refresh();
- }catch(e){note("Action failed: "+e.message)}
+
+// ACTIVATE / DEACTIVATE / DELETE
+$("employees").onclick=async event=>{
+let id=event.target.dataset.toggle||event.target.dataset.delete;
+if(!id)return;
+
+try{
+if(event.target.dataset.toggle){
+let status=employees[id].status==="Inactive"?"Active":"Inactive";
+await update(ref(db,"employees/"+id),{status});
+}else if(event.target.dataset.delete){
+if(!confirm("Permanently delete "+id+", face data and attendance?"))return;
+await remove(ref(db,"employees/"+id));
+await remove(ref(db,"attendance/"+id));
+}
+await refresh();
+}catch(e){
+note("Action failed: "+e.message);
+}
 };
-async function loadModels(){if(modelsReady)return;await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL);await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL);await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL);modelsReady=true}
+
+// FACE RECOGNITION MODELS
+async function loadModels(){
+if(modelsReady)return;
+if(!window.faceapi)throw Error("Face recognition library did not load. Refresh page.");
+await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL);
+await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL);
+await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL);
+modelsReady=true;
+}
+
+async function stopCamera(){
+if(stream){
+stream.getTracks().forEach(track=>track.stop());
+stream=null;
+}
+$("video").srcObject=null;
+$("video").style.display="none";
+}
+
 $("camera").onclick=async()=>{
- try{await loadModels();stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});$("video").srcObject=stream;$("video").style.display="block";captures=[];$("captureCount").textContent="Captured: 0 / 3";note("Camera ready. Capture front, slight left and slight right.");}
- catch(e){note("Camera error: "+e.message)}
+try{
+await loadModels();
+if(!navigator.mediaDevices?.getUserMedia)throw Error("Camera requires HTTPS and browser permission.");
+await stopCamera();
+stream=await navigator.mediaDevices.getUserMedia({
+video:{facingMode:"user"},
+audio:false
+});
+$("video").srcObject=stream;
+$("video").style.display="block";
+captures=[];
+$("captureCount").textContent="Captured: 0 / 3";
+note("Camera ready. Capture front, slight left and slight right.");
+}catch(e){
+note("Camera error: "+e.message);
+}
 };
+
+$("stopCamera").onclick=async()=>{
+await stopCamera();
+note("Camera stopped.");
+};
+
 $("capture").onclick=async()=>{
- try{if(!stream)throw Error("Start camera first");if(captures.length>=3)throw Error("Already captured 3 faces");
- let r=await faceapi.detectSingleFace($("video"),new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();if(!r)throw Error("Face not detected. Improve lighting.");
- captures.push(Array.from(r.descriptor));$("captureCount").textContent=`Captured: ${captures.length} / 3`;
- }catch(e){note(e.message)}
+try{
+if(!stream)throw Error("Start camera first");
+if(captures.length>=3)throw Error("Already captured 3 faces");
+
+let result=await faceapi
+.detectSingleFace($("video"),new faceapi.TinyFaceDetectorOptions())
+.withFaceLandmarks()
+.withFaceDescriptor();
+
+if(!result)throw Error("Face not detected. Improve lighting.");
+
+captures.push(Array.from(result.descriptor));
+$("captureCount").textContent=`Captured: ${captures.length} / 3`;
+note("Face capture "+captures.length+" completed.");
+}catch(e){
+note(e.message);
+}
 };
+
 $("saveFace").onclick=async()=>{
- try{let id=$("faceEmployee").value;if(!id)throw Error("Select employee");if(captures.length!==3)throw Error("Capture exactly 3 face samples");
- await worker("/face-register",{employeeId:id,descriptors:captures});
- await update(ref(db,"employees/"+id),{faceRegistered:true});captures=[];$("captureCount").textContent="Captured: 0 / 3";await refresh();note("Face registration saved for "+id);
- }catch(e){note("Face registration error: "+e.message)}
+try{
+let id=$("faceEmployee").value;
+if(!id)throw Error("Select employee");
+if(captures.length!==3)throw Error("Capture exactly 3 face samples");
+
+await worker("/face-register",{employeeId:id,descriptors:captures});
+await update(ref(db,"employees/"+id),{faceRegistered:true});
+
+captures=[];
+$("captureCount").textContent="Captured: 0 / 3";
+await refresh();
+note("Face registration saved for "+id);
+}catch(e){
+note("Face registration error: "+e.message);
+}
 };
-function fmt(v){return v==null?"—":v}
+
+// DAILY REPORT
 $("daily").onclick=async()=>{
- try{
-  let date=$("reportDate").value;if(!date)throw Error("Choose date");
-  let snap=await get(ref(db,"attendance"));let all=snap.val()||{};$("dailyRows").innerHTML="";
-  Object.entries(employees).forEach(([id,e])=>{
-   let events=all[id]?.[date];let arr=events?Object.values(events).sort((a,b)=>(a.timestamp||0)-(b.timestamp||0)):[];
-   let ins=arr.filter(x=>x.action==="IN"),outs=arr.filter(x=>x.action==="OUT");
-   let first=ins[0],last=outs[outs.length-1],work=first&&last?Math.max(0,Math.floor((last.timestamp-first.timestamp)/60000)):null;
-   let hours=work===null?"—":`${Math.floor(work/60)}h ${work%60}m`,ot=work===null?"—":`${Math.floor(Math.max(0,work-480)/60)}h ${Math.max(0,work-480)%60}m`;
-   let status="Absent";if(first){let t=first.time||"";status=t<="09:30"?"Present":t<"10:00"?"Late":"Half Day";if(!last)status+=" (In)";}
-   let tr=document.createElement("tr");[`${e.name} (${id})`,status,fmt(first?.time),fmt(last?.time),hours,ot].forEach(v=>{let td=document.createElement("td");td.textContent=v;tr.append(td)});$("dailyRows").append(tr);
-  });
-  note("Daily report loaded. Work duration includes the time between first IN and final OUT.");
- }catch(e){note("Report error: "+e.message)}
+try{
+let date=$("reportDate").value;
+if(!date)throw Error("Choose date");
+
+let snapshot=await get(ref(db,"attendance"));
+let all=snapshot.val()||{};
+$("dailyRows").innerHTML="";
+
+Object.entries(employees).forEach(([id,e])=>{
+let day=all[id]?.[date];
+let events=day?Object.values(day).sort((a,b)=>(a.timestamp||0)-(b.timestamp||0)):[];
+let ins=events.filter(x=>x.action==="IN");
+let outs=events.filter(x=>x.action==="OUT");
+let first=ins[0];
+let last=outs.length?outs[outs.length-1]:null;
+
+let work=first&&last
+?Math.max(0,Math.floor((last.timestamp-first.timestamp)/60000))
+:null;
+
+let status="Absent";
+if(first){
+status=first.time<="09:30"?"Present":first.time<"10:00"?"Late":"Half Day";
+if(!last)status+=" (In)";
+}
+
+let ot=work===null?null:Math.max(0,work-480);
+let row=document.createElement("tr");
+
+[
+`${e.name} (${id})`,
+status,
+first?.time||"—",
+last?.time||"—",
+formatMinutes(work),
+formatMinutes(ot)
+].forEach(value=>{
+let cell=document.createElement("td");
+cell.textContent=value;
+row.append(cell);
+});
+
+$("dailyRows").append(row);
+});
+
+note("Daily report loaded. Work time is first IN to final OUT, including lunch. OT starts after 8 hours.");
+
+}catch(e){
+note("Report error: "+e.message);
+}
 };
+
+// MONTHLY REPORT
 $("monthly").onclick=async()=>{
- try{let d=await worker("/monthly-report",{month:$("month").value});let rows=d.report||d.employees||[];$("monthlyResult").textContent=JSON.stringify(d,null,2);note("Monthly report received from Worker.");}
- catch(e){note("Monthly report error: "+e.message)}
+try{
+let month=$("month").value;
+if(!month)throw Error("Choose month");
+
+let data=await worker("/monthly-report",{month});
+$("monthlyResult").textContent=JSON.stringify(data,null,2);
+note("Monthly report received from Worker.");
+
+}catch(e){
+note("Monthly report error: "+e.message);
+}
 };
-</script></body></html>
+</script>
+</body>
+</html>

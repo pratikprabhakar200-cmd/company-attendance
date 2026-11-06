@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,29 +6,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Company Attendance</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#eef2f7;font-family:Arial,sans-serif;min-height:100vh;display:grid;place-items:center;padding:16px}
+*{box-sizing:border-box}
+body{margin:0;background:#eef2f7;font-family:Arial,sans-serif;min-height:100vh;display:grid;place-items:center;padding:16px}
 .card{width:100%;max-width:420px;background:#fff;border-radius:20px;padding:24px;box-shadow:0 8px 30px #0f172a18;text-align:center}
-.logo{font-size:42px}h2{margin:8px 0;color:#172554}.muted{color:#64748b;font-size:14px}
+.logo{font-size:42px}
+h2{margin:8px 0;color:#172554}
+.muted{color:#64748b;font-size:14px}
 video{width:100%;max-height:300px;object-fit:cover;background:#111;border-radius:14px;margin-top:18px;display:none}
 button{width:100%;padding:15px;border:0;border-radius:11px;background:#2563eb;color:white;font-weight:700;font-size:16px;margin-top:12px;cursor:pointer}
-button:disabled{opacity:.55}#punch{background:#15803d;display:none}#again{background:#475569;display:none}
+button:disabled{opacity:.55}
+#punch{background:#15803d;display:none}
+#again{background:#475569;display:none}
 #employee{display:none;padding:12px;background:#f8fafc;border-radius:12px;margin-top:14px}
 #message{white-space:pre-line;background:#f1f5f9;padding:12px;border-radius:10px;margin-top:16px;color:#334155;font-size:14px}
 </style>
 </head>
 <body>
 <main class="card">
- <div class="logo">👤</div><h2>Company Attendance</h2>
+ <div class="logo">👤</div>
+ <h2>Company Attendance</h2>
  <p class="muted">Face Recognition Attendance</p>
+
  <video id="video" autoplay muted playsinline></video>
+
  <button id="start">Start Face Scan</button>
  <button id="identify" hidden>Identify My Face</button>
- <section id="employee"><b id="empName"></b><p id="empId"></p></section>
+
+ <section id="employee">
+  <b id="empName"></b>
+  <p id="empId"></p>
+ </section>
+
  <button id="punch">PUNCH IN</button>
  <button id="again">Scan Again</button>
+
  <div id="message">Press Start Face Scan.</div>
 </main>
+
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.js"></script>
+
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -42,86 +59,346 @@ const firebaseConfig={
  appId:"1:528681450890:web:65c943b5b8e72557de5c73",
  measurementId:"G-KYSG7CD4W3"
 };
+
 const WORKER="https://morning-boat-14f9.pratikprabhakar200.workers.dev";
 const MODEL="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/model/";
-const app=initializeApp(firebaseConfig),auth=getAuth(app);
-const $=id=>document.getElementById(id);
-let stream=null,descriptor=null,employee=null,punchedIn=false,modelsReady=false;
 
-function say(t){$("message").textContent=t}
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const $=id=>document.getElementById(id);
+
+let stream=null;
+let descriptor=null;
+let employee=null;
+let punchedIn=false;
+let modelsReady=false;
+
+function say(message){
+ $("message").textContent=message;
+}
+
 async function token(){
- if(!auth.currentUser) await signInAnonymously(auth);
+ if(!auth.currentUser){
+  await signInAnonymously(auth);
+ }
  return auth.currentUser.getIdToken(true);
 }
+
 async function callApi(path,payload){
  const t=await token();
- const r=await fetch(WORKER+path,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+t},body:JSON.stringify(payload)});
- const d=await r.json().catch(()=>({}));
- if(!r.ok) throw new Error(d.error||d.message||`Server error ${r.status}`);
- return d;
+
+ const response=await fetch(WORKER+path,{
+  method:"POST",
+  headers:{
+   "Content-Type":"application/json",
+   "Authorization":"Bearer "+t
+  },
+  body:JSON.stringify(payload)
+ });
+
+ const data=await response.json().catch(()=>({}));
+
+ if(!response.ok){
+  throw new Error(data.message||data.error||"Server error "+response.status);
+ }
+
+ return data;
 }
+
 async function loadModels(){
  if(modelsReady)return;
+
+ if(!window.faceapi){
+  throw new Error("Face recognition library did not load. Refresh page.");
+ }
+
+ say("Loading face detection model...");
+
  await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL);
  await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL);
  await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL);
+
  modelsReady=true;
 }
+
+function wait(ms){
+ return new Promise(resolve=>setTimeout(resolve,ms));
+}
+
+async function waitForVideo(){
+ const video=$("video");
+
+ if(!stream){
+  throw new Error("Camera stream is not available.");
+ }
+
+ if(video.readyState>=2 && video.videoWidth>0){
+  await video.play();
+  return;
+ }
+
+ await new Promise((resolve,reject)=>{
+  const timeout=setTimeout(()=>{
+   cleanup();
+   reject(new Error("Camera is taking too long. Please try again."));
+  },12000);
+
+  function ready(){
+   if(video.readyState>=2 && video.videoWidth>0){
+    cleanup();
+    resolve();
+   }
+  }
+
+  function cleanup(){
+   clearTimeout(timeout);
+   video.removeEventListener("loadedmetadata",ready);
+   video.removeEventListener("canplay",ready);
+  }
+
+  video.addEventListener("loadedmetadata",ready);
+  video.addEventListener("canplay",ready);
+  ready();
+ });
+
+ await video.play();
+}
+
+async function stopCamera(){
+ if(stream){
+  stream.getTracks().forEach(track=>track.stop());
+  stream=null;
+ }
+
+ $("video").srcObject=null;
+ $("video").style.display="none";
+}
+
 $("start").onclick=async()=>{
  try{
-  $("start").disabled=true;say("Loading face model and camera...");
+  $("start").disabled=true;
+  say("Starting camera and loading face model...");
+
   await signInAnonymously(auth);
   await loadModels();
-  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});
-  $("video").srcObject=stream;$("video").style.display="block";
-  $("start").hidden=true;$("identify").hidden=false;say("Camera ready. Look straight at the camera.");
- }catch(e){say("Error: "+e.message);$("start").disabled=false}
+
+  if(!navigator.mediaDevices?.getUserMedia){
+   throw new Error("Camera requires HTTPS and browser permission.");
+  }
+
+  await stopCamera();
+
+  stream=await navigator.mediaDevices.getUserMedia({
+   video:{
+    facingMode:"user",
+    width:{ideal:640},
+    height:{ideal:480}
+   },
+   audio:false
+  });
+
+  $("video").srcObject=stream;
+  $("video").style.display="block";
+
+  await waitForVideo();
+
+  $("start").hidden=true;
+  $("identify").hidden=false;
+  $("identify").disabled=false;
+
+  say("Camera ready. Look straight at the camera in good light.");
+
+ }catch(error){
+  await stopCamera();
+  say("Error: "+error.message);
+  $("start").disabled=false;
+ }
 };
+
+async function detectFaceWithRetry(){
+ const video=$("video");
+
+ if(video.readyState<2 || !video.videoWidth){
+  throw new Error("Camera is not ready. Start again.");
+ }
+
+ for(let attempt=1;attempt<=6;attempt++){
+  say("Scanning face... Attempt "+attempt+" of 6");
+
+  const result=await faceapi
+   .detectSingleFace(
+    video,
+    new faceapi.TinyFaceDetectorOptions({
+     inputSize:416,
+     scoreThreshold:0.4
+    })
+   )
+   .withFaceLandmarks()
+   .withFaceDescriptor();
+
+  if(result){
+   return result;
+  }
+
+  if(attempt<6){
+   await wait(350);
+  }
+ }
+
+ throw new Error(
+  "Face not detected after 6 attempts. Keep your face straight, improve lighting and try again."
+ );
+}
+
 $("identify").onclick=async()=>{
  try{
-  $("identify").disabled=true;say("Scanning face...");
-  const result=await faceapi.detectSingleFace($("video"),new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-  if(!result)throw new Error("Face not detected. Move to good light and look at camera.");
+  $("identify").disabled=true;
+
+  const result=await detectFaceWithRetry();
+
   descriptor=Array.from(result.descriptor);
-  const d=await callApi("/face-identify",{descriptor});
-  if(!d.success||!d.employee)throw new Error(d.error||"Face not recognized. Contact admin.");
-  employee=d.employee;punchedIn=!!d.currentlyPunchedIn;
+
+  say("Face detected. Verifying employee...");
+
+  const data=await callApi("/face-identify",{
+   descriptor:descriptor
+  });
+
+  if(!data.success){
+   throw new Error(data.message||data.error||"Face not recognized. Contact admin.");
+  }
+
+  // Worker sends employeeId and employeeName,
+  // not an employee object. Build a safe display object.
+  employee={
+   employeeId:data.employeeId,
+   name:data.employeeName
+  };
+
+  punchedIn=!!data.currentlyPunchedIn;
+
   $("empName").textContent=employee.name||"Employee";
   $("empId").textContent="Employee ID: "+(employee.employeeId||"");
-  $("employee").style.display="block";$("identify").hidden=true;
-  $("punch").style.display="block";$("punch").textContent=punchedIn?"PUNCH OUT":"PUNCH IN";
-  $("again").style.display="block";say("Face identified successfully.");
- }catch(e){say("Error: "+e.message);$("identify").disabled=false}
+
+  $("employee").style.display="block";
+  $("identify").hidden=true;
+
+  $("punch").style.display="block";
+  $("punch").textContent=punchedIn?"PUNCH OUT":"PUNCH IN";
+
+  $("again").style.display="block";
+
+  say("Face identified successfully.");
+
+ }catch(error){
+  descriptor=null;
+  say("Error: "+error.message);
+  $("identify").disabled=false;
+ }
 };
+
 function gps(){
  return new Promise((resolve,reject)=>{
-  if(!navigator.geolocation)return reject(new Error("GPS is not available."));
-  navigator.geolocation.getCurrentPosition(p=>{
-   if(p.coords.accuracy>100)return reject(new Error("GPS accuracy is weak. Try outdoors."));
-   resolve({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy});
-  },e=>reject(new Error("GPS: "+e.message)),{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+  if(!navigator.geolocation){
+   return reject(new Error("GPS is not available."));
+  }
+
+  navigator.geolocation.getCurrentPosition(
+   position=>{
+    if(position.coords.accuracy>100){
+     return reject(new Error("GPS accuracy is weak. Try outdoors."));
+    }
+
+    resolve({
+     latitude:position.coords.latitude,
+     longitude:position.coords.longitude,
+     accuracy:position.coords.accuracy
+    });
+   },
+   error=>reject(new Error("GPS: "+error.message)),
+   {
+    enableHighAccuracy:true,
+    timeout:20000,
+    maximumAge:0
+   }
+  );
  });
 }
+
 $("punch").onclick=async()=>{
  try{
-  $("punch").disabled=true;const action=punchedIn?"OUT":"IN";
-  say("Checking GPS...");const location=await gps();
+  $("punch").disabled=true;
+
+  if(!descriptor || !employee){
+   throw new Error("Please identify your face first.");
+  }
+
+  const action=punchedIn?"OUT":"IN";
+
+  say("Checking GPS location...");
+
+  const location=await gps();
+
   say("Saving attendance...");
-  const d=await callApi("/face-punch",{action,descriptor,...location});
-  if(!d.success)throw new Error(d.error||"Punch failed.");
-  punchedIn=action==="IN";$("punch").textContent=punchedIn?"PUNCH OUT":"PUNCH IN";
-  let msg=action==="IN"?"Punch IN successful":"Punch OUT successful";
-  if(d.time)msg+="\nTime: "+d.time;
-  if(d.workHours!==undefined)msg+="\nWork Hours: "+d.workHours;
-  if(d.otHours!==undefined)msg+="\nOT Hours: "+d.otHours;
-  say(msg);
- }catch(e){say("Error: "+e.message)}finally{$("punch").disabled=false}
+
+  const data=await callApi("/face-punch",{
+   action:action,
+   descriptor:descriptor,
+   ...location
+  });
+
+  if(!data.success){
+   throw new Error(data.message||data.error||"Punch failed.");
+  }
+
+  punchedIn=action==="IN";
+
+  $("punch").textContent=punchedIn?"PUNCH OUT":"PUNCH IN";
+
+  let message=action==="IN"
+   ?"Punch IN successful"
+   :"Punch OUT successful";
+
+  if(data.time){
+   message+="\nTime: "+data.time;
+  }
+
+  if(data.attendanceStatus){
+   message+="\nStatus: "+data.attendanceStatus;
+  }
+
+  if(data.summary){
+   message+="\nWorking Hours: "+(data.summary.completedWorkHours??0);
+   message+="\nOvertime Hours: "+(data.summary.overtimeHours??0);
+  }
+
+  say(message);
+
+ }catch(error){
+  say("Error: "+error.message);
+ }finally{
+  $("punch").disabled=false;
+ }
 };
-$("again").onclick=()=>{
- if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;descriptor=null;employee=null;punchedIn=false;
- $("video").srcObject=null;$("video").style.display="none";$("employee").style.display="none";
- $("punch").style.display="none";$("again").style.display="none";$("start").hidden=false;$("start").disabled=false;
- $("identify").hidden=true;$("identify").disabled=false;say("Press Start Face Scan.");
+
+$("again").onclick=async()=>{
+ await stopCamera();
+
+ descriptor=null;
+ employee=null;
+ punchedIn=false;
+
+ $("employee").style.display="none";
+ $("punch").style.display="none";
+ $("again").style.display="none";
+
+ $("start").hidden=false;
+ $("start").disabled=false;
+
+ $("identify").hidden=true;
+ $("identify").disabled=false;
+
+ say("Press Start Face Scan.");
 };
 </script>
 </body>

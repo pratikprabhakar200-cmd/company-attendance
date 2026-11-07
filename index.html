@@ -1,10 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Company Attendance Admin</title>
+
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f1f5f9;font-family:Arial,sans-serif;color:#172033}
@@ -29,10 +29,13 @@ video{width:280px;max-width:100%;display:none;border-radius:10px;background:#111
 .tableWrap{overflow-x:auto}
 </style>
 </head>
+
 <body>
+
 <header>
 <h2>Company Attendance – Admin Panel</h2>
 </header>
+
 <main>
 
 <section class="panel" id="loginPanel">
@@ -50,43 +53,59 @@ video{width:280px;max-width:100%;display:none;border-radius:10px;background:#111
 <h3>Employee Registration</h3>
 <button class="gray" id="logout" type="button">Logout</button>
 </div>
+
 <div class="grid">
 <input id="name" placeholder="Employee full name">
 <input id="phone" placeholder="Phone (optional)">
 <button id="add" type="button">Register Employee</button>
 </div>
+
 <p class="small">Employee ID automatically generated using name initials and plot number 85.</p>
 <div id="newEmployee"></div>
 </section>
 
 <section class="panel">
 <h3>Register Employee Face</h3>
+
 <div class="grid">
 <select id="faceEmployee">
 <option value="">Select employee</option>
 </select>
+
 <select id="cameraFacing">
 <option value="user">Front Camera</option>
 <option value="environment">Back Camera</option>
 </select>
+
 <button id="camera" type="button">Start Camera</button>
 <button id="capture" type="button">Capture Face</button>
 <button id="saveFace" type="button">Save 3 Face Captures</button>
 <button id="stopCamera" class="gray" type="button">Stop Camera</button>
 </div>
+
 <video id="video" autoplay muted playsinline></video>
+
 <p id="captureCount">Captured: 0 / 3</p>
-<p class="small">Capture front, slight left and slight right. Only face descriptors are sent for registration, not raw photos.</p>
+
+<p class="small">
+Capture front, slight left and slight right. Only face descriptors are sent for registration, not raw photos.
+</p>
 </section>
 
 <section class="panel">
 <h3>Employee List</h3>
+
 <button id="refresh" type="button">Refresh Employees</button>
+
 <div class="tableWrap">
 <table>
 <thead>
 <tr>
-<th>ID</th><th>Name</th><th>Status</th><th>Face</th><th>Action</th>
+<th>ID</th>
+<th>Name</th>
+<th>Status</th>
+<th>Face</th>
+<th>Action</th>
 </tr>
 </thead>
 <tbody id="employees"></tbody>
@@ -96,13 +115,25 @@ video{width:280px;max-width:100%;display:none;border-radius:10px;background:#111
 
 <section class="panel">
 <h3>Daily Attendance Report</h3>
+
 <input type="date" id="reportDate">
+
 <button id="daily" type="button">Load Daily Report</button>
+
+<button id="dailyDownload" class="green" type="button">
+Download Daily Excel
+</button>
+
 <div class="tableWrap">
 <table>
 <thead>
 <tr>
-<th>Employee</th><th>Status</th><th>IN</th><th>OUT</th><th>Work</th><th>OT</th>
+<th>Employee</th>
+<th>Status</th>
+<th>IN</th>
+<th>OUT</th>
+<th>Work</th>
+<th>OT</th>
 </tr>
 </thead>
 <tbody id="dailyRows"></tbody>
@@ -112,31 +143,50 @@ video{width:280px;max-width:100%;display:none;border-radius:10px;background:#111
 
 <section class="panel">
 <h3>Monthly Attendance Report</h3>
+
 <div class="grid">
 <select id="month"></select>
+
 <button id="monthly" type="button">Load Monthly Report</button>
-<button id="downloadExcel" class="green" type="button">Download Excel</button>
+
+<button id="downloadExcel" class="green" type="button">
+Download Excel
+</button>
 </div>
-<p class="small">Excel report mein employee-wise daily attendance, IN, OUT, work hours aur OT milega.</p>
+
+<p class="small">
+Excel report mein employee-wise daily attendance, IN, OUT, work hours aur OT milega.
+</p>
+
 <div id="monthlyResult"></div>
 </section>
 
 <section class="panel">
 <h3>Holiday Management</h3>
+
 <p class="small">
 Sunday automatically Weekly Off rahega. Sunday ya manual Holiday par duty karne par Present ke saath alag duty count hogi.
 </p>
+
 <div class="grid">
 <input type="date" id="holidayDate">
 <input type="text" id="holidayName" placeholder="Holiday name (e.g. Diwali)">
+
 <button id="markHoliday" class="green" type="button">Mark Holiday</button>
+
 <button id="removeHoliday" class="danger" type="button">Remove Holiday</button>
 </div>
+
 <h4>Manual Holiday List</h4>
+
 <div class="tableWrap">
 <table>
 <thead>
-<tr><th>Date</th><th>Day</th><th>Holiday Name</th></tr>
+<tr>
+<th>Date</th>
+<th>Day</th>
+<th>Holiday Name</th>
+</tr>
 </thead>
 <tbody id="holidayRows"></tbody>
 </table>
@@ -144,13 +194,16 @@ Sunday automatically Weekly Off rahega. Sunday ya manual Holiday par duty karne 
 </section>
 
 </div>
+
 <div id="notice">Sign in with the administrator account.</div>
+
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script type="module">
+
 import {initializeApp}
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
@@ -170,6 +223,7 @@ remove,
 update
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
+
 const firebaseConfig={
 apiKey:"AIzaSyAtQDdI2P9MgeTAEWKpdEgsS6KCNO1fXnw",
 authDomain:"company-attendance-8bbb1.firebaseapp.com",
@@ -177,18 +231,22 @@ databaseURL:"https://company-attendance-8bbb1-default-rtdb.asia-southeast1.fireb
 projectId:"company-attendance-8bbb1",
 storageBucket:"company-attendance-8bbb1.firebasestorage.app",
 messagingSenderId:"528681450890",
-appId:"1:528681450890:web:65c943b5b8e72557de5c73",
+appId:"1:528681450890:web:65c943b5e8b72557de5c73",
 measurementId:"G-KYSG7CD4W3"
 };
 
 const ADMIN_UID="83VXGyZpVkU9pTkWP4tPxSYt9OU2";
+
 const WORKER="https://morning-boat-14f9.pratikprabhakar200.workers.dev";
+
 const MODEL="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/model/";
 
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getDatabase(app);
+
 const $=id=>document.getElementById(id);
+
 
 let employees={};
 let allAttendance={};
@@ -198,37 +256,56 @@ let captures=[];
 let modelsReady=false;
 let lastMonthlyData=null;
 
+
 function note(message){
 $("notice").textContent=message;
 }
 
+
 function escapeHtml(value){
 return String(value??"").replace(/[&<>"']/g,c=>({
-"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#39;"
 })[c]);
 }
+
 
 function formatMinutes(value){
 if(value==null)return "—";
 return Math.floor(value/60)+"h "+(value%60)+"m";
 }
 
+
 function localDate(date=new Date()){
 return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
 }
+
 
 function dayName(date){
 return new Date(date+"T12:00:00").toLocaleDateString("en-IN",{weekday:"long"});
 }
 
+
 function isSunday(date){
 return new Date(date+"T12:00:00").getDay()===0;
 }
 
+
+// FIXED: Sunday check uses selected report date
+
 function holidayInfo(date){
-if(isSunday()){
-return {type:"weeklyOff",holiday:false,name:"Sunday"};
+
+if(isSunday(date)){
+return {
+type:"weeklyOff",
+holiday:false,
+name:"Sunday"
+};
 }
+
 if(holidays[date]){
 return {
 type:"holiday",
@@ -236,16 +313,29 @@ holiday:true,
 name:holidays[date].name||"Holiday"
 };
 }
-return {type:"workingDay",holiday:false,name:""};
+
+return {
+type:"workingDay",
+holiday:false,
+name:""
+};
 }
 
+
 async function token(){
-if(!auth.currentUser)throw Error("Please login again.");
+
+if(!auth.currentUser){
+throw Error("Please login again.");
+}
+
 return auth.currentUser.getIdToken(true);
 }
 
+
 async function worker(path,body){
+
 const t=await token();
+
 const response=await fetch(WORKER+path,{
 method:"POST",
 headers:{
@@ -254,80 +344,147 @@ headers:{
 },
 body:JSON.stringify(body)
 });
+
 const data=await response.json().catch(()=>({}));
+
 if(!response.ok){
 throw Error(data.error||data.message||"Worker error "+response.status);
 }
+
 return data;
 }
+
 
 $("reportDate").value=localDate();
 $("holidayDate").value=localDate();
 
+
 const today=new Date();
+
 for(let i=0;i<12;i++){
+
 let d=new Date(today.getFullYear(),today.getMonth()-i,1);
+
 let option=document.createElement("option");
+
 option.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-option.textContent=d.toLocaleString("en-IN",{month:"long",year:"numeric"});
+
+option.textContent=d.toLocaleString("en-IN",{
+month:"long",
+year:"numeric"
+});
+
 $("month").append(option);
 }
 
+
+// LOGIN
+
 $("login").onclick=async()=>{
+
 $("login").disabled=true;
 $("loginMsg").textContent="Logging in...";
+
 try{
-await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);
+
+await signInWithEmailAndPassword(
+auth,
+$("email").value.trim(),
+$("password").value
+);
+
 $("loginMsg").textContent="Login successful";
+
 }catch(e){
+
 $("loginMsg").textContent=e.message;
+
 }finally{
+
 $("login").disabled=false;
+
 }
+
 };
 
+
 $("logout").onclick=async()=>{
+
 await stopCamera();
 await signOut(auth);
 note("Logged out.");
+
 };
 
+
 onAuthStateChanged(auth,async user=>{
+
 const isAdmin=!!user&&user.uid===ADMIN_UID;
+
 $("loginPanel").classList.toggle("hidden",isAdmin);
 $("dashboard").classList.toggle("hidden",!isAdmin);
+
 if(user&&!isAdmin){
+
 await signOut(auth);
+
 $("loginMsg").textContent="This account is not authorized as admin.";
+
 note("Admin access denied.");
+
 return;
 }
+
 if(isAdmin){
+
 await refresh();
 await loadHolidays();
+
 }
+
 });
 
+
+// EMPLOYEE MANAGEMENT
+
 async function refresh(){
+
 try{
+
 const snapshot=await get(ref(db,"employees"));
+
 employees=snapshot.val()||{};
+
 render();
+
 note("Employees loaded.");
+
 }catch(e){
+
 note("Database error: "+e.message);
-}
+
 }
 
+}
+
+
 function render(){
+
 $("employees").innerHTML="";
+
 $("faceEmployee").innerHTML='<option value="">Select employee</option>';
+
 Object.entries(employees).forEach(([id,e])=>{
+
 let option=document.createElement("option");
+
 option.value=id;
 option.textContent=id+" - "+(e.name||"");
+
 $("faceEmployee").append(option);
+
 let row=document.createElement("tr");
+
 row.innerHTML=`
 <td>${escapeHtml(id)}</td>
 <td>${escapeHtml(e.name||"")}</td>
@@ -337,263 +494,614 @@ row.innerHTML=`
 <button class="gray" data-toggle="${escapeHtml(id)}" type="button">
 ${e.status==="Inactive"?"Activate":"Deactivate"}
 </button>
-<button class="danger" data-delete="${escapeHtml(id)}" type="button">Delete</button>
+<button class="danger" data-delete="${escapeHtml(id)}" type="button">
+Delete
+</button>
 </td>`;
+
 $("employees").append(row);
+
 });
+
 }
+
 
 $("refresh").onclick=refresh;
 
+
 $("add").onclick=async()=>{
+
 $("add").disabled=true;
+
 try{
+
 let name=$("name").value.trim();
+
 if(!name)throw Error("Enter employee name");
+
 let phone=$("phone").value.trim();
+
 let parts=name.split(/\s+/);
+
 let initials=(parts[0][0]+parts[parts.length-1].slice(-1)).toUpperCase();
+
 let serials=Object.keys(employees).map(id=>{
+
 let match=id.match(/-85(\d+)$/);
+
 return match?Number(match[1]):0;
+
 });
+
 let serial=Math.max(0,...serials)+1;
+
 let id=`${initials}-85${String(serial).padStart(2,"0")}`;
+
 await set(ref(db,"employees/"+id),{
-employeeId:id,name:name,phone:phone,status:"Active",
-faceRegistered:false,createdAt:Date.now()
+
+employeeId:id,
+name:name,
+phone:phone,
+status:"Active",
+faceRegistered:false,
+createdAt:Date.now()
+
 });
+
 $("name").value="";
 $("phone").value="";
+
 $("newEmployee").textContent="Registered: "+id+" — "+name;
+
 await refresh();
+
 note("Employee registered successfully: "+id);
+
 }catch(e){
+
 note("Registration error: "+e.message);
+
 }finally{
+
 $("add").disabled=false;
+
 }
+
 };
+
 
 $("employees").onclick=async event=>{
+
 let id=event.target.dataset.toggle||event.target.dataset.delete;
+
 if(!id)return;
+
 try{
+
 if(event.target.dataset.toggle){
+
 let status=employees[id].status==="Inactive"?"Active":"Inactive";
+
 await update(ref(db,"employees/"+id),{status});
+
 }else if(event.target.dataset.delete){
+
 if(!confirm("Permanently delete "+id+", face data and attendance?"))return;
+
 await remove(ref(db,"employees/"+id));
+
 await remove(ref(db,"attendance/"+id));
+
 }
+
 await refresh();
+
 }catch(e){
+
 note("Action failed: "+e.message);
+
 }
+
 };
 
+
+// FACE REGISTRATION
+
 async function loadModels(){
+
 if(modelsReady)return;
-if(!window.faceapi)throw Error("Face recognition library did not load. Refresh page.");
-await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL);
-await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL);
-await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL);
-modelsReady=true;
+
+if(!window.faceapi){
+throw Error("Face recognition library did not load. Refresh page.");
 }
+
+await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL);
+
+await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL);
+
+await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL);
+
+modelsReady=true;
+
+}
+
 
 async function stopCamera(){
+
 if(stream){
+
 stream.getTracks().forEach(track=>track.stop());
+
 stream=null;
-}
-$("video").srcObject=null;
-$("video").style.display="none";
+
 }
 
+$("video").srcObject=null;
+
+$("video").style.display="none";
+
+}
+
+
 async function startCamera(){
+
 try{
+
 await loadModels();
+
 if(!navigator.mediaDevices?.getUserMedia){
+
 throw Error("Camera requires HTTPS and browser permission.");
+
 }
+
 await stopCamera();
+
 const facing=$("cameraFacing").value;
+
 stream=await navigator.mediaDevices.getUserMedia({
-video:{facingMode:{ideal:facing}},audio:false
+
+video:{facingMode:{ideal:facing}},
+audio:false
+
 });
+
 $("video").srcObject=stream;
+
 $("video").style.display="block";
+
 captures=[];
+
 $("captureCount").textContent="Captured: 0 / 3";
+
 note((facing==="user"?"Front":"Back")+" camera ready. Capture front, slight left and slight right.");
+
 }catch(e){
+
 note("Camera error: "+e.message);
+
 }
+
 }
+
 
 $("camera").onclick=startCamera;
 
+
 $("cameraFacing").onchange=async()=>{
+
 if(stream){
+
 note("Switching camera...");
+
 await startCamera();
+
 }else{
+
 note("Selected camera: "+($("cameraFacing").value==="user"?"Front":"Back"));
+
 }
+
 };
+
 
 $("stopCamera").onclick=async()=>{
+
 await stopCamera();
+
 note("Camera stopped.");
+
 };
+
 
 $("capture").onclick=async()=>{
+
 try{
+
 if(!stream)throw Error("Start camera first");
+
 if(captures.length>=3)throw Error("Already captured 3 faces");
+
 let result=await faceapi
+
 .detectSingleFace($("video"),new faceapi.TinyFaceDetectorOptions())
+
 .withFaceLandmarks()
+
 .withFaceDescriptor();
+
 if(!result)throw Error("Face not detected. Improve lighting.");
+
 captures.push(Array.from(result.descriptor));
+
 $("captureCount").textContent=`Captured: ${captures.length} / 3`;
+
 note("Face capture "+captures.length+" completed.");
+
 }catch(e){
+
 note(e.message);
+
 }
+
 };
+
 
 $("saveFace").onclick=async()=>{
+
 try{
+
 let id=$("faceEmployee").value;
+
 if(!id)throw Error("Select employee");
+
 if(captures.length!==3)throw Error("Capture exactly 3 face samples");
+
 await worker("/face-register",{employeeId:id,descriptors:captures});
+
 await update(ref(db,"employees/"+id),{faceRegistered:true});
+
 captures=[];
+
 $("captureCount").textContent="Captured: 0 / 3";
+
 await refresh();
+
 note("Face registration saved for "+id);
+
 }catch(e){
+
 note("Face registration error: "+e.message);
+
 }
+
 };
 
+
+// ATTENDANCE DATA
+
 async function loadAttendance(){
+
 const snapshot=await get(ref(db,"attendance"));
+
 allAttendance=snapshot.val()||{};
+
 return allAttendance;
+
 }
 
+
+// FIXED: Future date, Sunday, holiday and late status
+
 function getDayData(id,date){
+
 let day=allAttendance[id]?.[date];
+
 let events=day?.events
-?Object.values(day.events).sort((a,b)=>(a.timestamp||0)-(b.timestamp||0))
+?Object.values(day.events).sort(
+(a,b)=>(a.timestamp||0)-(b.timestamp||0)
+)
 :[];
+
 let ins=events.filter(x=>x.action==="IN");
+
 let outs=events.filter(x=>x.action==="OUT");
+
 let first=ins[0]||null;
+
 let last=outs.length?outs[outs.length-1]:null;
+
 let work=first&&last
 ?Math.max(0,Math.floor((last.timestamp-first.timestamp)/60000))
 :null;
+
 let dayInfo=holidayInfo(date);
+
 let worked=!!first;
+
 let status="Absent";
 
-if(dayInfo.type==="weeklyOff"){
+if(date>localDate()){
+
+status="Upcoming";
+
+}else if(dayInfo.type==="weeklyOff"){
+
 status=worked?"Present (Sunday Duty)":"Weekly Off";
+
 }else if(dayInfo.type==="holiday"){
+
 status=worked?"Present (Holiday Duty)":dayInfo.name;
+
 }else if(first){
-status=first.time<="09:30"?"Present":first.time<"10:00"?"Late":"Half Day";
+
+status=first.time<="09:30"
+?"Present"
+:first.time<="10:00"
+?"Late"
+:"Half Day";
+
 }
 
-if(worked&&!last)status+=" (In)";
+if(worked&&!last){
+
+status+=" (In)";
+
+}
+
 let ot=work===null?null:Math.max(0,work-480);
 
 return {
-date,day:dayName(date),status,
+
+date,
+day:dayName(date),
+status,
+
 holiday:dayInfo.type==="holiday"&&!worked,
+
 holidayName:dayInfo.name,
+
 dayType:dayInfo.type,
+
 worked,
+
 sundayDuty:dayInfo.type==="weeklyOff"&&worked,
+
 holidayDuty:dayInfo.type==="holiday"&&worked,
+
 weeklyOff:dayInfo.type==="weeklyOff"&&!worked,
+
 in:first?.time||"",
+
 out:last?.time||"",
-work,ot
+
+work,
+ot
+
 };
+
 }
+
+
+// DAILY REPORT
 
 $("daily").onclick=async()=>{
+
 try{
+
 let date=$("reportDate").value;
+
 if(!date)throw Error("Choose date");
+
 await loadAttendance();
+
 $("dailyRows").innerHTML="";
+
 Object.entries(employees).forEach(([id,e])=>{
+
 let d=getDayData(id,date);
+
 let row=document.createElement("tr");
+
 [
-`${e.name} (${id})`,d.status,d.in||"—",d.out||"—",
-formatMinutes(d.work),formatMinutes(d.ot)
+
+`${e.name} (${id})`,
+d.status,
+d.in||"—",
+d.out||"—",
+formatMinutes(d.work),
+formatMinutes(d.ot)
+
 ].forEach(value=>{
+
 let cell=document.createElement("td");
+
 cell.textContent=value;
+
 row.append(cell);
+
 });
+
 $("dailyRows").append(row);
+
 });
+
 note("Daily report loaded. Sunday without punch is Weekly Off; Sunday punch counts as Present + Sunday Duty. Manual holiday punch counts as Present + Holiday Duty. Work time is first IN to final OUT, including lunch. OT starts after 8 hours.");
+
 }catch(e){
+
 note("Report error: "+e.message);
+
 }
+
 };
 
-function getMonthDates(month){
-let [year,mon]=month.split("-").map(Number);
-let days=new Date(year,mon,0).getDate();
-let dates=[];
-for(let d=1;d<=days;d++){
-dates.push(`${year}-${String(mon).padStart(2,"0")}-${String(d).padStart(2,"0")}`);
-}
-return dates;
+
+// DAILY EXCEL DOWNLOAD
+
+$("dailyDownload").onclick=async()=>{
+
+try{
+
+if(!window.XLSX)throw Error("Excel library did not load. Refresh page.");
+
+let date=$("reportDate").value;
+
+if(!date)throw Error("Choose date");
+
+$("dailyDownload").disabled=true;
+
+await loadAttendance();
+
+const rows=Object.entries(employees).map(([id,e])=>{
+
+const d=getDayData(id,date);
+
+return {
+
+"Date":date,
+"Day":d.day,
+"Employee ID":id,
+"Employee Name":e.name||"",
+"Status":d.status,
+"Punch In":d.in,
+"Punch Out":d.out,
+"Work Hours":formatMinutes(d.work),
+"OT Hours":formatMinutes(d.ot)
+
+};
+
+});
+
+const wb=XLSX.utils.book_new();
+
+const ws=XLSX.utils.json_to_sheet(rows);
+
+ws["!cols"]=[
+
+{wch:14},
+{wch:14},
+{wch:16},
+{wch:24},
+{wch:22},
+{wch:14},
+{wch:14},
+{wch:14},
+{wch:14}
+
+];
+
+XLSX.utils.book_append_sheet(wb,ws,"Daily Attendance");
+
+XLSX.writeFile(wb,"Attendance_Daily_"+date+".xlsx");
+
+note("Daily Excel report downloaded successfully.");
+
+}catch(e){
+
+note("Daily Excel download error: "+e.message);
+
+}finally{
+
+$("dailyDownload").disabled=false;
+
 }
 
+};
+
+
+// MONTHLY REPORT
+
+function getMonthDates(month){
+
+let [year,mon]=month.split("-").map(Number);
+
+let days=new Date(year,mon,0).getDate();
+
+let dates=[];
+
+for(let d=1;d<=days;d++){
+
+dates.push(`${year}-${String(mon).padStart(2,"0")}-${String(d).padStart(2,"0")}`);
+
+}
+
+return dates;
+
+}
+
+
 function buildMonthlyData(month){
+
 let dates=getMonthDates(month);
+
 let records=[];
+
 let summary=[];
 
 Object.entries(employees).forEach(([id,e])=>{
+
 let counts={
-present:0,absent:0,holiday:0,late:0,halfDay:0,
-weeklyOff:0,sundayDuty:0,holidayDuty:0,totalWork:0,totalOT:0
+
+present:0,
+absent:0,
+holiday:0,
+late:0,
+halfDay:0,
+weeklyOff:0,
+sundayDuty:0,
+holidayDuty:0,
+totalWork:0,
+totalOT:0
+
 };
 
+
 dates.forEach(date=>{
+
 let d=getDayData(id,date);
+
 if(d.weeklyOff)counts.weeklyOff++;
+
 if(d.holiday)counts.holiday++;
+
 if(d.sundayDuty)counts.sundayDuty++;
+
 if(d.holidayDuty)counts.holidayDuty++;
 
+
 if(d.worked){
+
 counts.present++;
-if(d.dayType==="workingDay"&&d.status.startsWith("Late"))counts.late++;
-if(d.dayType==="workingDay"&&d.status.startsWith("Half Day"))counts.halfDay++;
-}else if(d.dayType==="workingDay"){
-counts.absent++;
+
+if(d.dayType==="workingDay"&&d.status.startsWith("Late")){
+
+counts.late++;
+
 }
 
+if(d.dayType==="workingDay"&&d.status.startsWith("Half Day")){
+
+counts.halfDay++;
+
+}
+
+}else if(d.dayType==="workingDay"&&date<=localDate()){
+
+// FIXED: Future dates are not counted as absent
+
+counts.absent++;
+
+}
+
+
 if(d.work!==null)counts.totalWork+=d.work;
+
 if(d.ot!==null)counts.totalOT+=d.ot;
 
+
 records.push({
+
 "Employee ID":id,
 "Employee Name":e.name||"",
 "Date":date,
@@ -608,10 +1116,14 @@ records.push({
 "OT Hours":formatMinutes(d.ot),
 "Work Minutes":d.work??0,
 "OT Minutes":d.ot??0
-});
+
 });
 
+});
+
+
 summary.push({
+
 "Employee ID":id,
 "Employee Name":e.name||"",
 "Present":counts.present,
@@ -626,33 +1138,55 @@ summary.push({
 "Total OT":formatMinutes(counts.totalOT),
 "Total Work Minutes":counts.totalWork,
 "Total OT Minutes":counts.totalOT
+
 });
+
 });
 
 return {records,summary};
+
 }
 
+
+// LOAD MONTHLY REPORT
+
 $("monthly").onclick=async()=>{
+
 try{
+
 let month=$("month").value;
+
 if(!month)throw Error("Choose month");
+
 await loadAttendance();
+
 lastMonthlyData=buildMonthlyData(month);
 
 let html=`
+
 <div class="tableWrap">
 <table>
 <thead>
 <tr>
-<th>Employee</th><th>Present</th><th>Absent</th><th>Late</th>
-<th>Half Day</th><th>Holiday</th><th>Weekly Off</th>
-<th>Sunday Duty</th><th>Holiday Duty</th><th>Total OT</th>
+<th>Employee</th>
+<th>Present</th>
+<th>Absent</th>
+<th>Late</th>
+<th>Half Day</th>
+<th>Holiday</th>
+<th>Weekly Off</th>
+<th>Sunday Duty</th>
+<th>Holiday Duty</th>
+<th>Total OT</th>
 </tr>
 </thead>
 <tbody>`;
 
+
 lastMonthlyData.summary.forEach(x=>{
+
 html+=`
+
 <tr>
 <td>${escapeHtml(x["Employee Name"])} (${escapeHtml(x["Employee ID"])})</td>
 <td>${x.Present}</td>
@@ -665,109 +1199,234 @@ html+=`
 <td>${x["Holiday Duty"]}</td>
 <td>${escapeHtml(x["Total OT"])}</td>
 </tr>`;
+
 });
+
 
 html+=`</tbody></table></div>`;
+
 $("monthlyResult").innerHTML=html;
+
 note("Monthly report loaded successfully.");
+
 }catch(e){
+
 note("Monthly report error: "+e.message);
+
 }
+
 };
+
+
+// MONTHLY EXCEL DOWNLOAD
 
 $("downloadExcel").onclick=async()=>{
+
 try{
-if(!window.XLSX)throw Error("Excel library did not load. Refresh page.");
+
+if(!window.XLSX){
+
+throw Error("Excel library did not load. Refresh page.");
+
+}
+
 let month=$("month").value;
+
 if(!month)throw Error("Choose month");
+
 $("downloadExcel").disabled=true;
+
 await loadAttendance();
+
 let data=buildMonthlyData(month);
+
 let workbook=XLSX.utils.book_new();
+
 let attendanceSheet=XLSX.utils.json_to_sheet(data.records);
+
 let summarySheet=XLSX.utils.json_to_sheet(data.summary);
 
+
 attendanceSheet["!cols"]=[
-{wch:16},{wch:22},{wch:14},{wch:14},{wch:22},{wch:16},
-{wch:16},{wch:14},{wch:14},{wch:16},{wch:14},{wch:14},{wch:14}
+
+{wch:16},
+{wch:22},
+{wch:14},
+{wch:14},
+{wch:22},
+{wch:16},
+{wch:16},
+{wch:14},
+{wch:14},
+{wch:16},
+{wch:14},
+{wch:14},
+{wch:14}
+
 ];
+
+
 summarySheet["!cols"]=[
-{wch:16},{wch:22},{wch:12},{wch:12},{wch:12},{wch:12},
-{wch:12},{wch:12},{wch:14},{wch:14},{wch:16},{wch:16},
-{wch:20},{wch:18}
+
+{wch:16},
+{wch:22},
+{wch:12},
+{wch:12},
+{wch:12},
+{wch:12},
+{wch:12},
+{wch:12},
+{wch:14},
+{wch:14},
+{wch:16},
+{wch:16},
+{wch:20},
+{wch:18}
+
 ];
+
 
 XLSX.utils.book_append_sheet(workbook,attendanceSheet,"Daily Attendance");
+
 XLSX.utils.book_append_sheet(workbook,summarySheet,"Employee Summary");
+
 XLSX.writeFile(workbook,"Attendance_Report_"+month+".xlsx");
+
 note("Excel report downloaded successfully.");
+
 }catch(e){
+
 note("Excel download error: "+e.message);
+
 }finally{
+
 $("downloadExcel").disabled=false;
+
 }
+
 };
+
+
+// HOLIDAY MANAGEMENT
 
 async function loadHolidays(){
+
 try{
+
 const snapshot=await get(ref(db,"holidays"));
+
 holidays=snapshot.val()||{};
+
 renderHolidays();
+
 }catch(e){
+
 note("Holiday loading error: "+e.message);
+
 }
+
 }
+
 
 function renderHolidays(){
+
 $("holidayRows").innerHTML="";
+
 Object.entries(holidays)
+
 .sort((a,b)=>a[0].localeCompare(b[0]))
+
 .forEach(([date,h])=>{
+
 let row=document.createElement("tr");
+
 [date,dayName(date),h.name||"Holiday"].forEach(value=>{
+
 let cell=document.createElement("td");
+
 cell.textContent=value;
+
 row.append(cell);
+
 });
+
 $("holidayRows").append(row);
+
 });
+
 }
+
 
 $("markHoliday").onclick=async()=>{
+
 try{
+
 let date=$("holidayDate").value;
+
 let name=$("holidayName").value.trim();
+
 if(!date)throw Error("Select holiday date");
+
 if(!name)throw Error("Enter holiday name");
+
 await set(ref(db,"holidays/"+date),{
-name:name,createdAt:Date.now()
+
+name:name,
+createdAt:Date.now()
+
 });
+
 $("holidayName").value="";
+
 await loadHolidays();
+
 note("Holiday marked successfully: "+date);
+
 }catch(e){
+
 note("Holiday error: "+e.message);
+
 }
+
 };
 
+
 $("removeHoliday").onclick=async()=>{
+
 try{
+
 let date=$("holidayDate").value;
+
 if(!date)throw Error("Select holiday date");
+
 if(isSunday(date)){
+
 throw Error("Sunday is an automatic Weekly Off and cannot be removed.");
+
 }
+
 if(!holidays[date]){
+
 throw Error("No manual holiday found on this date.");
+
 }
+
 if(!confirm("Remove Holiday for "+date+"?"))return;
+
 await remove(ref(db,"holidays/"+date));
+
 await loadHolidays();
+
 note("Manual holiday removed successfully.");
+
 }catch(e){
+
 note("Holiday removal error: "+e.message);
+
 }
+
 };
+
 </script>
 </body>
 </html>
